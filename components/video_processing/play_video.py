@@ -23,7 +23,7 @@ class VideoPlayerUI(QWidget):
         self.current_segment_offset = 0.0  # Time offset in current segment
 
         # VLC setup
-        self.vlc_instance = vlc.Instance()
+        self.vlc_instance = vlc.Instance("--quiet")
         self.player = self.vlc_instance.media_player_new()
 
         # UI Elements
@@ -97,7 +97,7 @@ class VideoPlayerUI(QWidget):
         self.current_segment_index = index
 
     def _get_media_duration(self, file_path, timeout=5):
-        instance = vlc.Instance()
+        instance = vlc.Instance("--quiet")
         media = instance.media_new(file_path)
 
         # Start parsing

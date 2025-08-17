@@ -1,0 +1,21 @@
+version: 2
+updates:
+  # Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"  # Location of requirements.txt or pyproject.toml
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "deps"
+    ignore:
+      - dependency-name: "some-package-to-ignore"
+        versions: ["<1.0.0"]
+
+  # Node.js dependencies
+  - package-ecosystem: "npm"
+    directory: "/"  # Location of package.json
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "deps"
+

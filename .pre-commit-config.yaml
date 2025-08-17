@@ -3,15 +3,22 @@ repos:
     rev: v5.0.0
     hooks:
     -   id: trailing-whitespace
+        language_version: python3.12
     -   id: end-of-file-fixer
+        language_version: python3.12
     -   id: check-yaml
+        language_version: python3.12
     -   id: debug-statements
+        language_version: python3.12
     -   id: double-quote-string-fixer
+        language_version: python3.12
     -   id: name-tests-test
+        language_version: python3.12
     -   id: requirements-txt-fixer
+        language_version: python3.12
 
 - repo: https://github.com/pre-commit/mirrors-eslint
-  rev: v8.56.0  # Replace with latest stable
+  rev: v8.56.0
   hooks:
     - id: eslint
       language: node
@@ -24,5 +31,7 @@ repos:
     - id: ruff-check
       types_or: [ python, pyi ]
       args: [ --fix, "--target-version", "py311" ]
+      language_version: python3.12
     - id: ruff-format
       types_or: [ python, pyi ]
+      language_version: python3.12
