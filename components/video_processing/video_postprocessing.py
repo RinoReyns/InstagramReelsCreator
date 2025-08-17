@@ -3,7 +3,6 @@ import os
 from tqdm import tqdm
 import threading
 
-# from moviepy.editor import concatenate_videoclips
 from components.video_processing.video_processing_utils import get_codec
 from utils.data_structures import LoadedVideo
 from moviepy.video.VideoClip import ColorClip
