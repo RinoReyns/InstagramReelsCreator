@@ -10,7 +10,7 @@ from utils.data_structures import (
 )
 from sympy import floor
 
-from moviepy.editor import (
+from moviepy import (
     ImageClip,
     VideoFileClip,
 )

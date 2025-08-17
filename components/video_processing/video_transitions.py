@@ -1,6 +1,6 @@
-from moviepy.editor import concatenate_videoclips
+from moviepy import concatenate_videoclips
 from utils.data_structures import TransitionTypeEnum
-from moviepy.editor import ImageSequenceClip
+from moviepy import ImageSequenceClip
 import numpy as np
 import cv2
 from tqdm import tqdm
