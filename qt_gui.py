@@ -4,16 +4,32 @@ import threading
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QPushButton, QLabel,
-    QFileDialog, QHBoxLayout, QGraphicsView, QGraphicsScene,
-    QGraphicsTextItem, QLineEdit
+    QApplication,
+    QWidget,
+    QVBoxLayout,
+    QPushButton,
+    QLabel,
+    QFileDialog,
+    QHBoxLayout,
+    QGraphicsView,
+    QGraphicsScene,
+    QGraphicsTextItem,
+    QLineEdit,
 )
 
-from components.gui_components.qt_timeline_block import AdjustableBlock, AudioAdjustableBlock
+from components.gui_components.qt_timeline_block import (
+    AdjustableBlock,
+    AudioAdjustableBlock,
+)
 from components.audio_processing.play_audio import AudioThread
 from components.video_processing.play_video import VideoPlayerUI
 from utils.json_handler import media_clips_to_json, pars_config
-from utils.data_structures import VisionDataTypeEnum, FILE_NAME, TIMELINE_START, TIMELINE_END
+from utils.data_structures import (
+    VisionDataTypeEnum,
+    FILE_NAME,
+    TIMELINE_START,
+    TIMELINE_END,
+)
 
 from components.gui_components.qt_waveform_item import WaveformItem
 from utils.data_structures import PIXELS_PER_SEC, MAX_VIDEO_DURATION
@@ -93,7 +109,9 @@ class VideoTimelineApp(QWidget):
         self.audio_thread = None
 
     def load_external_audio(self):
-        audio_path, _ = QFileDialog.getOpenFileName(self, "Open Audio File", "", "Audio Files (*.wav *.mp3)")
+        audio_path, _ = QFileDialog.getOpenFileName(
+            self, "Open Audio File", "", "Audio Files (*.wav *.mp3)"
+        )
         if audio_path:
             self.audio_path = audio_path
             self.audioTimelineScene.clear()
@@ -101,15 +119,18 @@ class VideoTimelineApp(QWidget):
             waveform = WaveformItem(width=800, height=height)
             waveform.load_waveform(audio_path)
             self.audioTimelineScene.addItem(waveform)
-            block_config = {FILE_NAME: audio_path,
-                            TIMELINE_START: 0,
-                            TIMELINE_END: 0,
-                            "start":0,
-                            "end":0,
-                            "type": VisionDataTypeEnum.AUDIO
-                            }
+            block_config = {
+                FILE_NAME: audio_path,
+                TIMELINE_START: 0,
+                TIMELINE_END: 0,
+                "start": 0,
+                "end": 0,
+                "type": VisionDataTypeEnum.AUDIO,
+            }
             # Add adjustable block for audio segment, full width initially
-            audio_block = AudioAdjustableBlock(0, 5, 800, 115, block_config=block_config)
+            audio_block = AudioAdjustableBlock(
+                0, 5, 800, 115, block_config=block_config
+            )
             self.audioTimelineScene.addItem(audio_block)
             self.draw_audio_time_grid(int(waveform.duration))
             self.audio_thread = AudioThread(audio_path)
@@ -138,14 +159,18 @@ class VideoTimelineApp(QWidget):
 
         for file, setting in self.blocks_configs.items():
             segments.append(
-                {"path": os.path.join(self.work_dir_box.text(), file), "start": setting.start,
-                 "end":  setting.end})
+                {
+                    "path": os.path.join(self.work_dir_box.text(), file),
+                    "start": setting.start,
+                    "end": setting.end,
+                }
+            )
 
         return segments
 
     def restart_audio_thread(self):
         # Stop existing thread if running
-        if hasattr(self, 'audio_thread') and self.audio_thread.isRunning():
+        if hasattr(self, "audio_thread") and self.audio_thread.isRunning():
             print("Stopping existing audio thread...")
 
             # Stop loop logic
@@ -160,10 +185,14 @@ class VideoTimelineApp(QWidget):
             if params is not None:
                 self.restart_audio_thread()
                 self.audio_thread.finished.connect(self.audio_thread.stop_loop)
-                self.audio_thread.start_loop(max(params[TIMELINE_START], 0), params[TIMELINE_END])
+                self.audio_thread.start_loop(
+                    max(params[TIMELINE_START], 0), params[TIMELINE_END]
+                )
 
     def load_config(self):
-        config_path, _ = QFileDialog.getOpenFileName(self, "Open Config File", "", "JSON Files (*.json)")
+        config_path, _ = QFileDialog.getOpenFileName(
+            self, "Open Config File", "", "JSON Files (*.json)"
+        )
         if not config_path:
             return
         if self.work_dir_box.text() == "":
@@ -179,7 +208,9 @@ class VideoTimelineApp(QWidget):
         end = 0
         for video_file, settings in config_data.items():
             try:
-                duration = max(0, min(settings.end, MAX_VIDEO_DURATION))- max(0, min(settings.start, MAX_VIDEO_DURATION))
+                duration = max(0, min(settings.end, MAX_VIDEO_DURATION)) - max(
+                    0, min(settings.start, MAX_VIDEO_DURATION)
+                )
                 end += duration
                 width = max((end - start) * PIXELS_PER_SEC, 10)
                 x = 10 + start * PIXELS_PER_SEC
@@ -189,16 +220,20 @@ class VideoTimelineApp(QWidget):
                     continue
                 # TODO:
                 # handle order change
-                self.blocks_configs[video_file] =  settings
+                self.blocks_configs[video_file] = settings
                 block_config_temp = media_clips_to_json({video_file: settings})
-                block_config = {FILE_NAME: video_file,
-                                TIMELINE_START: start,
-                                TIMELINE_END: end,
-                                "duration": duration,
-                                # add max duration of video to disable expanding for more
-                                "type": VisionDataTypeEnum.VIDEO} | block_config_temp[video_file]
+                block_config = {
+                    FILE_NAME: video_file,
+                    TIMELINE_START: start,
+                    TIMELINE_END: end,
+                    "duration": duration,
+                    # add max duration of video to disable expanding for more
+                    "type": VisionDataTypeEnum.VIDEO,
+                } | block_config_temp[video_file]
 
-                block = AdjustableBlock(x, 10, width, 200, label="", block_config=block_config)
+                block = AdjustableBlock(
+                    x, 10, width, 200, label="", block_config=block_config
+                )
                 self.timelineScene.addItem(block)
                 full_path = os.path.join(config_dir, video_file)
                 if not os.path.exists(full_path):
@@ -229,7 +264,7 @@ class VideoTimelineApp(QWidget):
             self,
             "Select Folder",
             "",
-            QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks
+            QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks,
         )
         if folder:
             self.work_dir_box.setText(folder)
@@ -261,8 +296,6 @@ class VideoTimelineApp(QWidget):
         create_instagram_reel(
             self.blocks_configs, self.work_dir_box.text(), "test_output.mp4", preview
         )
-
-
 
 
 if __name__ == "__main__":

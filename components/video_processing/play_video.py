@@ -1,12 +1,18 @@
 import sys
 import vlc
 from PyQt5.QtWidgets import (
-    QWidget, QPushButton, QSlider, QVBoxLayout, QHBoxLayout, QFileDialog
+    QWidget,
+    QPushButton,
+    QSlider,
+    QVBoxLayout,
+    QHBoxLayout,
+    QFileDialog,
 )
 import time
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QLabel
+
 
 class VideoPlayerUI(QWidget):
     def __init__(self):
@@ -26,7 +32,7 @@ class VideoPlayerUI(QWidget):
         palette.setColor(QPalette.Window, Qt.black)
         self.video_frame.setAutoFillBackground(True)
         self.video_frame.setPalette(palette)
-        self.video_frame.setFixedSize(int(1920/3), int(1080/3))
+        self.video_frame.setFixedSize(int(1920 / 3), int(1080 / 3))
         self.time_label = QLabel("00:00 / 00:00")
         self.time_label.setAlignment(Qt.AlignCenter)
 
@@ -117,7 +123,13 @@ class VideoPlayerUI(QWidget):
             self, "Open Video File", "", "Video Files (*.mp4 *.mov *.avi *.mkv)"
         )
         if file_path:
-            self.segments = [{"path": file_path, "start": 0.0, "end": self._get_media_duration(file_path)}]
+            self.segments = [
+                {
+                    "path": file_path,
+                    "start": 0.0,
+                    "end": self._get_media_duration(file_path),
+                }
+            ]
             self.total_duration = sum(s["end"] - s["start"] for s in self.segments)
 
     def fast_preview(self, segments: None | list[dict] = None):
@@ -152,11 +164,15 @@ class VideoPlayerUI(QWidget):
         if current_time >= segment["end"]:
             self._play_next_segment()
         else:
-            global_time = self._get_global_time(self.current_segment_index, current_time)
+            global_time = self._get_global_time(
+                self.current_segment_index, current_time
+            )
             self.slider.setValue(int(global_time / self.total_duration * 1000))
 
             # Update time label
-            self.time_label.setText(f"{self._format_time(global_time)} / {self._format_time(self.total_duration)}")
+            self.time_label.setText(
+                f"{self._format_time(global_time)} / {self._format_time(self.total_duration)}"
+            )
 
     def _play_next_segment(self):
         if self.current_segment_index + 1 < len(self.segments):
@@ -189,7 +205,9 @@ class VideoPlayerUI(QWidget):
     def _play_segment_from(self, time_in_segment):
         self._load_segment(self.current_segment_index)
         self.player.play()
-        QTimer.singleShot(300, lambda: self.player.set_time(int(time_in_segment * 1000)))
+        QTimer.singleShot(
+            300, lambda: self.player.set_time(int(time_in_segment * 1000))
+        )
 
     def seek(self, slider_value):
         global_time = (slider_value / 1000.0) * self.total_duration

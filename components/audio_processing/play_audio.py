@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot, QTimer, QMetaObject, Q_ARG, Qt
+from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot, QTimer
 import vlc
 
 
@@ -31,7 +31,9 @@ class AudioLooper(QObject):
         self.running = True
 
         self.player.play()
-        QTimer.singleShot(100, lambda: self.player.set_time(int(self.start_time * 1000)))
+        QTimer.singleShot(
+            100, lambda: self.player.set_time(int(self.start_time * 1000))
+        )
         self._loop_timer.start()
 
     def _check_loop(self):
@@ -53,6 +55,7 @@ class AudioLooper(QObject):
     def pause(self):
         if self.player.is_playing():
             self.player.pause()
+
 
 class AudioThread(QThread):
     def __init__(self, file_path):

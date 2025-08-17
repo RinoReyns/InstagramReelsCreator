@@ -63,7 +63,7 @@ def create_config_from_folder(folder_path):
     return config
 
 
-def media_clips_to_json(data: dict[str, MediaClip], filepath: str =""):
+def media_clips_to_json(data: dict[str, MediaClip], filepath: str = ""):
     json_ready = {
         key: {
             **asdict(clip),
@@ -72,16 +72,18 @@ def media_clips_to_json(data: dict[str, MediaClip], filepath: str =""):
         for key, clip in data.items()
     }
 
-    if filepath is not "":
+    if filepath != "":
         with open(filepath, "w") as f:
             json.dump(json_ready, f, indent=4)
     else:
         return json_ready
 
+
 def load_json(filepath):
     with open(filepath) as f:
         raw_data = json.load(f)
     return raw_data
+
 
 def media_clips_from_json(filepath: str) -> dict[str, MediaClip]:
     return {
