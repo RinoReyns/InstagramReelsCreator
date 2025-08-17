@@ -16,9 +16,9 @@ class AdjustableBlock(QGraphicsRectItem):
     MIN_X = 0
     MAX_X = MIN_X + 90 * PIXELS_PER_SEC  # 90 seconds * 50 pixels/sec
     LABEL = (
-        "File name:\n    {video_file}\n"
-        "Timeline Pos:\n    start:{t_start}    \n    end:{t_end} "
-        "\nFile Time:\n    start:{start}    \n    end:{end}"
+        'File name:\n    {video_file}\n'
+        'Timeline Pos:\n    start:{t_start}    \n    end:{t_end} '
+        '\nFile Time:\n    start:{start}    \n    end:{end}'
     )
     BIAS_IN_S = 0.2
 
@@ -29,7 +29,7 @@ class AdjustableBlock(QGraphicsRectItem):
         width,
         height,
         *,
-        label="",
+        label='',
         color=QColor(100, 150, 200),
         block_config=None,
     ):
@@ -54,8 +54,8 @@ class AdjustableBlock(QGraphicsRectItem):
         )
         self._set_label()
 
-        self.left_handle = ResizeHandle(self, "left")
-        self.right_handle = ResizeHandle(self, "right")
+        self.left_handle = ResizeHandle(self, 'left')
+        self.right_handle = ResizeHandle(self, 'right')
         self.updateHandles()
 
         self._moving = False
@@ -63,9 +63,9 @@ class AdjustableBlock(QGraphicsRectItem):
 
     def _set_label(self):
         if self.block_config is not None:
-            if self.block_config["type"] == VisionDataTypeEnum.AUDIO:
+            if self.block_config['type'] == VisionDataTypeEnum.AUDIO:
                 self.text_label.setPlainText(
-                    self.LABEL.split("\nFile Time:")[0].format(
+                    self.LABEL.split('\nFile Time:')[0].format(
                         video_file=self.block_config[FILE_NAME],
                         t_start=self.block_config[TIMELINE_START],
                         t_end=self.block_config[TIMELINE_END],
@@ -78,8 +78,8 @@ class AdjustableBlock(QGraphicsRectItem):
                         video_file=self.block_config[FILE_NAME],
                         t_start=self.block_config[TIMELINE_START],
                         t_end=self.block_config[TIMELINE_END],
-                        start=self.block_config["start"],
-                        end=self.block_config["end"],
+                        start=self.block_config['start'],
+                        end=self.block_config['end'],
                     )
                 )
 
@@ -108,7 +108,7 @@ class AdjustableBlock(QGraphicsRectItem):
             left_trim_seconds = round(left_trim_pixels / PIXELS_PER_SEC, 2)
 
             # New internal clip start = original start + left trim
-            internal_start = max(0.0, self.block_config["start"] + left_trim_seconds)
+            internal_start = max(0.0, self.block_config['start'] + left_trim_seconds)
             internal_end = round(
                 (internal_start + self.rect().width()) / PIXELS_PER_SEC - RIGHT_BIAS, 2
             )
@@ -118,9 +118,9 @@ class AdjustableBlock(QGraphicsRectItem):
             duration = max(duration, 0.0)
 
             # # Set block config values
-            self.block_config["start"] = internal_start
-            self.block_config["end"] = internal_end
-            self.block_config["duration"] = duration
+            self.block_config['start'] = internal_start
+            self.block_config['end'] = internal_end
+            self.block_config['duration'] = duration
 
             self.block_config[TIMELINE_START] = round(timeline_start, 2)
             self.block_config[TIMELINE_END] = round(timeline_start + duration, 2)
@@ -162,7 +162,7 @@ class AdjustableBlock(QGraphicsRectItem):
                 if self.block_config[TIMELINE_START] < 0:
                     self.block_config[TIMELINE_START] = 0.0
                     self.block_config[TIMELINE_END] = round(
-                        self.block_config["duration"], 2
+                        self.block_config['duration'], 2
                     )
 
             self.updateHandles(True)
