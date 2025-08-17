@@ -15,6 +15,8 @@ from PyQt5.QtWidgets import (
     QGraphicsScene,
     QGraphicsTextItem,
     QLineEdit,
+    QProgressDialog,
+    QMessageBox,
 )
 
 from components.gui_components.qt_timeline_block import (
@@ -35,8 +37,12 @@ from components.gui_components.qt_waveform_item import WaveformItem
 from utils.data_structures import PIXELS_PER_SEC, MAX_VIDEO_DURATION
 from main import create_instagram_reel
 
+from components.audio_processing.dowload_music import DownloadThread
+
 
 class VideoTimelineApp(QWidget):
+    DOWNLOAD_DIR = 'download'
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Instagram Reel Creator')
@@ -91,6 +97,8 @@ class VideoTimelineApp(QWidget):
         self.playAudioBtn = QPushButton('Play')
         self.pauseAudioBtn = QPushButton('Pause')
         self.stopAudioBtn = QPushButton('Stop')
+        self.downloadAudioBtn = QPushButton('Download Audio from URL')
+        self.audio_url_box = QLineEdit(self)
 
         self.audioTimelineView = QGraphicsView()
         self.audioTimelineScene = QGraphicsScene()
@@ -98,47 +106,94 @@ class VideoTimelineApp(QWidget):
         self.audioTimelineView.setFixedHeight(200)
         self.layout.addWidget(QLabel('Audio Timeline:'))
         audio_controls_layout = QHBoxLayout()
+        audio_download_controls_layout = QHBoxLayout()
         audio_controls_layout.addWidget(self.loadAudioBtn)
         audio_controls_layout.addWidget(self.playAudioBtn)
         audio_controls_layout.addWidget(self.pauseAudioBtn)
         audio_controls_layout.addWidget(self.stopAudioBtn)
         self.layout.addLayout(audio_controls_layout)
+        audio_download_controls_layout.addWidget(self.downloadAudioBtn)
+        audio_download_controls_layout.addWidget(self.audio_url_box)
+
+        self.layout.addLayout(audio_download_controls_layout)
         self.layout.addWidget(self.audioTimelineView)
         self.draw_audio_time_grid(MAX_VIDEO_DURATION)
-        self.loadAudioBtn.clicked.connect(self.load_external_audio)
+        self.loadAudioBtn.clicked.connect(self.load_audio_window)
+        self.downloadAudioBtn.clicked.connect(self.download_audio)
         self.audio_thread = None
 
-    def load_external_audio(self):
+    def load_audio_window(self):
         audio_path, _ = QFileDialog.getOpenFileName(
             self, 'Open Audio File', '', 'Audio Files (*.wav *.mp3)'
         )
-        if audio_path:
-            self.audio_path = audio_path
-            self.audioTimelineScene.clear()
-            height = 120
-            waveform = WaveformItem(width=800, height=height)
-            waveform.load_waveform(audio_path)
-            self.audioTimelineScene.addItem(waveform)
-            block_config = {
-                FILE_NAME: audio_path,
-                TIMELINE_START: 0,
-                TIMELINE_END: 0,
-                'start': 0,
-                'end': 0,
-                'type': VisionDataTypeEnum.AUDIO,
-            }
-            # Add adjustable block for audio segment, full width initially
-            audio_block = AudioAdjustableBlock(
-                0, 5, 800, 115, block_config=block_config
-            )
-            self.audioTimelineScene.addItem(audio_block)
-            self.draw_audio_time_grid(int(waveform.duration))
-            self.audio_thread = AudioThread(audio_path)
+        self.load_external_audio(audio_path)
 
-            self.playAudioBtn.clicked.connect(self.play_audio)
-            self.pauseAudioBtn.clicked.connect(self.audio_thread.pause)
-            self.stopAudioBtn.clicked.connect(self.audio_thread.stop_loop)
-            self.audio_thread.looper.moveToThread(self.audio_thread)
+    def load_external_audio(self, audio_path):
+        if not audio_path:
+            self.show_warning('None audio file was loaded.')
+            return
+        self.audio_path = audio_path
+        self.audioTimelineScene.clear()
+        height = 120
+        waveform = WaveformItem(width=800, height=height)
+        waveform.load_waveform(audio_path)
+        self.audioTimelineScene.addItem(waveform)
+        block_config = {
+            FILE_NAME: audio_path,
+            TIMELINE_START: 0,
+            TIMELINE_END: 0,
+            'start': 0,
+            'end': 0,
+            'type': VisionDataTypeEnum.AUDIO,
+        }
+        # Add adjustable block for audio segment, full width initially
+        audio_block = AudioAdjustableBlock(
+            0, 5, 800, 115, block_config=block_config
+        )
+        self.audioTimelineScene.addItem(audio_block)
+        self.draw_audio_time_grid(int(waveform.duration))
+        self.audio_thread = AudioThread(audio_path)
+
+        self.playAudioBtn.clicked.connect(self.play_audio)
+        self.pauseAudioBtn.clicked.connect(self.audio_thread.pause)
+        self.stopAudioBtn.clicked.connect(self.audio_thread.stop_loop)
+        self.audio_thread.looper.moveToThread(self.audio_thread)
+
+    def show_warning(self, text):
+        msg = QMessageBox(self)
+        msg.setIcon(QMessageBox.Warning)  # Use Critical for errors
+        msg.setWindowTitle('Warning')
+        msg.setText(text)
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
+
+    def download_audio(self):
+        if not self.audio_url_box.text():
+            self.show_warning('Url to download is empty.')
+            return
+        # Setup progress dialog
+        self.progress_dialog = QProgressDialog('Downloading...', 'Cancel', 0, 0, self)
+        self.progress_dialog.setWindowTitle('Download Progress')
+        self.progress_dialog.setMinimumDuration(0)
+        self.progress_dialog.resize(400, 100)
+        self.progress_dialog.show()
+
+
+        # Start download thread
+        self.thread = DownloadThread(self.audio_url_box.text(), self.DOWNLOAD_DIR)
+        self.thread.progress_signal.connect(self.update_progress)
+        self.thread.start()
+
+        def on_finished():
+            self.update_progress('Download completed!')
+            self.progress_dialog.close()
+            self.load_external_audio(self.thread.downloaded_file)
+
+        self.thread.finished.connect(on_finished)
+
+    def update_progress(self, text):
+        if self.progress_dialog:
+            self.progress_dialog.setLabelText(text)
 
     def get_audio_item(self):
         for item in self.audioTimelineScene.items():
