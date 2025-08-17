@@ -11,7 +11,7 @@ class TestMediaClipFieldOrder(unittest.TestCase):
         expected_order = [
             'start',
             'end',
-            'crossfade',
+            'transition',
             'type',
             'video_resampling',
         ]
