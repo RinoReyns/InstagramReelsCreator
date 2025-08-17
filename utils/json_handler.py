@@ -9,12 +9,12 @@ from dataclasses import asdict, fields
 from utils.data_structures import MediaClip, VisionDataTypeEnum, TransitionTypeEnum
 
 # Configure logger
-logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(message)s')
+logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(message)s")
 logger = logging.getLogger(__name__)
 
 # File extensions for type detection
-VIDEO_EXTENSIONS = {'.mp4', '.mov', '.avi', '.mkv'}
-PHOTO_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.bmp', '.gif'}
+VIDEO_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv"}
+PHOTO_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".gif"}
 
 
 # Path to your JSON file
@@ -30,7 +30,7 @@ def pars_config(file_path):
         logger.error(f"Error decoding JSON: {e}")
         raise
 
-    logger.info('JSON structure is valid.')
+    logger.info("JSON structure is valid.")
     return data
 
 
@@ -63,17 +63,17 @@ def create_config_from_folder(folder_path):
     return config
 
 
-def media_clips_to_json(data: dict[str, MediaClip], filepath: str = ''):
+def media_clips_to_json(data: dict[str, MediaClip], filepath: str = ""):
     json_ready = {
         key: {
             **asdict(clip),
-            'type': clip.type.value,  # Serialize Enum to string
+            "type": clip.type.value,  # Serialize Enum to string
         }
         for key, clip in data.items()
     }
 
-    if filepath != '':
-        with open(filepath, 'w') as f:
+    if filepath != "":
+        with open(filepath, "w") as f:
             json.dump(json_ready, f, indent=4)
     else:
         return json_ready
@@ -102,19 +102,19 @@ def media_clips_from_json(filepath: str) -> dict[str, MediaClip]:
 def json_template_generator():
     # Argument parser setup
     parser = argparse.ArgumentParser(
-        description='Generate JSON config from a folder of media files.',
+        description="Generate JSON config from a folder of media files.",
     )
     parser.add_argument(
-        '--folder',
+        "--folder",
         required=True,
         type=str,
-        help='Path to the folder containing media files',
+        help="Path to the folder containing media files",
     )
     parser.add_argument(
-        '--output',
+        "--output",
         required=True,
         type=str,
-        help='Path to save the generated JSON config file',
+        help="Path to save the generated JSON config file",
     )
     args = parser.parse_args()
 

@@ -6,17 +6,17 @@ from moviepy.video.io.VideoFileClip import VideoFileClip
 
 
 class VisionDataTypeEnum(StrEnum):
-    VIDEO = 'video'
-    PHOTO = 'photo'
-    AUDIO = 'audio'
+    VIDEO = "video"
+    PHOTO = "photo"
+    AUDIO = "audio"
 
 
 class TransitionTypeEnum(StrEnum):
-    NONE = 'none'
-    ZOOM = 'zoom'
-    SLIDE = 'slide'
-    FADE = 'fade'
-    SPIN = 'spin'
+    NONE = "none"
+    ZOOM = "zoom"
+    SLIDE = "slide"
+    FADE = "fade"
+    SPIN = "spin"
 
 
 @dataclass
@@ -37,6 +37,6 @@ class LoadedVideo:
 INSTAGRAM_RESOLUTION = (1080, 1920)
 PIXELS_PER_SEC = 50
 MAX_VIDEO_DURATION = 90
-FILE_NAME = 'name'
-TIMELINE_START = 'timeline_start'
-TIMELINE_END = 'timeline_end'
+FILE_NAME = "name"
+TIMELINE_START = "timeline_start"
+TIMELINE_END = "timeline_end"

@@ -18,12 +18,12 @@ from moviepy.editor import (
 from components.video_processing.video_processing_utils import format_photo_to_vertical
 
 
-logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(message)s')
+logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(message)s")
 
 
 class VideoPreprocessing:
     INSTAGRAM_FPS = 30
-    TEMP = 'temp'
+    TEMP = "temp"
 
     def __init__(self):
         self.cfr_cache = {}  # {original_path: converted_path}
@@ -60,26 +60,26 @@ class VideoPreprocessing:
             return output_path
 
         cmd = [
-            'ffmpeg',
-            '-i',
+            "ffmpeg",
+            "-i",
             input_path,
-            '-r',
+            "-r",
             str(target_fps),
-            '-vsync',
-            'cfr',
-            '-pix_fmt',
-            'yuv420p',
-            '-c:v',
-            'libx264',
-            '-preset',
-            'slow',
-            '-crf',
-            '18',
-            '-c:a',
-            'aac',
-            '-b:a',
-            '192k',
-            '-y',
+            "-vsync",
+            "cfr",
+            "-pix_fmt",
+            "yuv420p",
+            "-c:v",
+            "libx264",
+            "-preset",
+            "slow",
+            "-crf",
+            "18",
+            "-c:a",
+            "aac",
+            "-b:a",
+            "192k",
+            "-y",
             output_path,
         ]
         subprocess.run(
@@ -101,15 +101,15 @@ class VideoPreprocessing:
         - avg_framerate_float: average framerate as float, or None on failure
         """
         cmd = [
-            'ffprobe',
-            '-v',
-            'error',
-            '-select_streams',
-            'v:0',
-            '-show_entries',
-            'stream=r_frame_rate,avg_frame_rate',
-            '-of',
-            'default=noprint_wrappers=1:nokey=1',
+            "ffprobe",
+            "-v",
+            "error",
+            "-select_streams",
+            "v:0",
+            "-show_entries",
+            "stream=r_frame_rate,avg_frame_rate",
+            "-of",
+            "default=noprint_wrappers=1:nokey=1",
             video_path,
         ]
         try:

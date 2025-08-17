@@ -32,33 +32,33 @@ def has_nvenc_support():
     try:
         # Run ffmpeg -encoders and capture output
         result = subprocess.run(
-            ['ffmpeg', '-hide_banner', '-encoders'],
+            ["ffmpeg", "-hide_banner", "-encoders"],
             capture_output=True,
             text=True,
             check=True,
         )
         encoders = result.stdout.lower()
         # Check for NVENC encoders
-        return 'h264_nvenc' in encoders or 'hevc_nvenc' in encoders
+        return "h264_nvenc" in encoders or "hevc_nvenc" in encoders
     except FileNotFoundError:
-        print('FFmpeg is not installed or not found in PATH.')
+        print("FFmpeg is not installed or not found in PATH.")
         return False
     except subprocess.CalledProcessError as e:
-        print('FFmpeg error:', e)
+        print("FFmpeg error:", e)
         return False
 
 
 def has_nvidia_gpu():
     try:
         result = subprocess.run(
-            ['nvidia-smi'],
+            ["nvidia-smi"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
             check=True,
         )
         # Print basic GPU info (optional)
-        print('🖥️ NVIDIA GPU detected:\n', result.stdout.split('\n')[2])
+        print("🖥️ NVIDIA GPU detected:\n", result.stdout.split("\n")[2])
         return True
     except FileNotFoundError:
         print("⚠️ 'nvidia-smi' not found. Is the NVIDIA driver installed?")
@@ -69,10 +69,10 @@ def has_nvidia_gpu():
 
 def get_codec():
     if has_nvenc_support() and has_nvidia_gpu():
-        codec = 'h264_nvenc'
-        print('✅ NVENC GPU acceleration is available.')
+        codec = "h264_nvenc"
+        print("✅ NVENC GPU acceleration is available.")
     else:
-        codec = 'libx264'
+        codec = "libx264"
         # codec = "h264_qsv"
-        print('⚠️ Falling back to CPU encoding.')
+        print("⚠️ Falling back to CPU encoding.")
     return codec

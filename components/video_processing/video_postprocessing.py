@@ -11,12 +11,12 @@ from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 from moviepy.video.io.VideoFileClip import VideoFileClip
 from components.video_processing.video_transitions import VideoTransitions
 
-logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(message)s')
+logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(message)s")
 
 
 class VideoPostProcessing:
     OUTPUT_FPS = 30
-    PREVIEW_FOLDER = 'preview'
+    PREVIEW_FOLDER = "preview"
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
@@ -55,7 +55,7 @@ class VideoPostProcessing:
 
         # Overlay the resized clip in the center of the background
         composed = CompositeVideoClip(
-            [background, resized_clip.set_position('center')],
+            [background, resized_clip.set_position("center")],
             size=target_size,
         )
         clip.clip = composed.set_duration(clip.clip.duration).set_audio(
@@ -76,7 +76,7 @@ class VideoPostProcessing:
         clip.write_videofile(
             output_file,
             codec=codec,
-            audio_codec='aac',
+            audio_codec="aac",
             threads=max(1, os.cpu_count() - 2),
             fps=fps,
             logger=None,  # bar
@@ -98,7 +98,7 @@ class VideoPostProcessing:
             threads.append(thread)
 
         # Optional: Wait for all threads to finish
-        for thread in tqdm(threads, desc='Rendering previews'):
+        for thread in tqdm(threads, desc="Rendering previews"):
             thread.join()
 
     def final_render(self, output_path: str, clips: list[LoadedVideo]):
@@ -108,7 +108,7 @@ class VideoPostProcessing:
         final_clip.write_videofile(
             output_path,
             codec=get_codec(),
-            audio_codec='aac',
+            audio_codec="aac",
             threads=os.cpu_count() - 2,
             fps=self.OUTPUT_FPS,
         )

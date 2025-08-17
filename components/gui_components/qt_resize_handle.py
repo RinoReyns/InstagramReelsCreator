@@ -8,7 +8,7 @@ class ResizeHandle(QGraphicsRectItem):
         super().__init__(0, 0, 6, parent_block.rect().height())
         self.parent_block = parent_block
         self.position = position  # 'left' or 'right'
-        color = Qt.red if position == 'left' else Qt.green
+        color = Qt.red if position == "left" else Qt.green
         self.setBrush(QBrush(color))
         self.setCursor(Qt.SizeHorCursor)
         self.setZValue(1)
@@ -29,7 +29,7 @@ class ResizeHandle(QGraphicsRectItem):
                 self._handling_change = False
                 return super().itemChange(change, value)
 
-            if self.position == 'left':
+            if self.position == "left":
                 # Calculate proposed new position and width
                 new_x = self.parent_block.x() + dx
                 new_width = self.parent_block.rect().width() - dx
@@ -53,7 +53,7 @@ class ResizeHandle(QGraphicsRectItem):
                 )
                 self.parent_block.setPos(QPointF(new_x, self.parent_block.y()))
 
-            elif self.position == 'right':
+            elif self.position == "right":
                 new_width = dx
                 max_right = self.parent_block.MAX_X
                 right_edge = self.parent_block.x() + new_width
@@ -84,7 +84,7 @@ class ResizeHandle(QGraphicsRectItem):
         delta = event.scenePos().x() - self._drag_start_x
         self._drag_start_x = event.scenePos().x()
 
-        if self.position == 'left':
+        if self.position == "left":
             # Calculate new size and position
             new_x = self.parent_block.x() + delta
             new_width = self.parent_block.rect().width() - delta
@@ -104,7 +104,7 @@ class ResizeHandle(QGraphicsRectItem):
             )
             self.parent_block.setPos(QPointF(new_x, self.parent_block.y()))
 
-        elif self.position == 'right':
+        elif self.position == "right":
             new_width = self.parent_block.rect().width() + delta
             max_right = self.parent_block.MAX_X
 

@@ -39,7 +39,7 @@ from main import create_instagram_reel
 class VideoTimelineApp(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('Instagram Reel Creator')
+        self.setWindowTitle("Instagram Reel Creator")
         self.setGeometry(750, 50, 1750, 1000)
 
         self.layout = QVBoxLayout()
@@ -50,12 +50,12 @@ class VideoTimelineApp(QWidget):
         self.layout.addWidget(self.video_frame)
 
         # Timeline view
-        self.render_preview_btn = QPushButton('Render Preview')
-        self.fast_preview_btn = QPushButton('Fast Preview')
-        self.load_config_btn = QPushButton('Load Timeline Config')
-        self.save_config_btn = QPushButton('Save Timeline Config')
-        self.final_render_btn = QPushButton('Final Render')
-        self.work_dir_btn = QPushButton('Select Work Dir')
+        self.render_preview_btn = QPushButton("Render Preview")
+        self.fast_preview_btn = QPushButton("Fast Preview")
+        self.load_config_btn = QPushButton("Load Timeline Config")
+        self.save_config_btn = QPushButton("Save Timeline Config")
+        self.final_render_btn = QPushButton("Final Render")
+        self.work_dir_btn = QPushButton("Select Work Dir")
         self.work_dir_box = QLineEdit(self)
 
         self.timelineView = QGraphicsView()
@@ -87,16 +87,16 @@ class VideoTimelineApp(QWidget):
         self.blocks = []
 
         # Audio Timeline
-        self.loadAudioBtn = QPushButton('Load External Audio')
-        self.playAudioBtn = QPushButton('Play')
-        self.pauseAudioBtn = QPushButton('Pause')
-        self.stopAudioBtn = QPushButton('Stop')
+        self.loadAudioBtn = QPushButton("Load External Audio")
+        self.playAudioBtn = QPushButton("Play")
+        self.pauseAudioBtn = QPushButton("Pause")
+        self.stopAudioBtn = QPushButton("Stop")
 
         self.audioTimelineView = QGraphicsView()
         self.audioTimelineScene = QGraphicsScene()
         self.audioTimelineView.setScene(self.audioTimelineScene)
         self.audioTimelineView.setFixedHeight(200)
-        self.layout.addWidget(QLabel('Audio Timeline:'))
+        self.layout.addWidget(QLabel("Audio Timeline:"))
         audio_controls_layout = QHBoxLayout()
         audio_controls_layout.addWidget(self.loadAudioBtn)
         audio_controls_layout.addWidget(self.playAudioBtn)
@@ -110,7 +110,7 @@ class VideoTimelineApp(QWidget):
 
     def load_external_audio(self):
         audio_path, _ = QFileDialog.getOpenFileName(
-            self, 'Open Audio File', '', 'Audio Files (*.wav *.mp3)'
+            self, "Open Audio File", "", "Audio Files (*.wav *.mp3)"
         )
         if audio_path:
             self.audio_path = audio_path
@@ -123,9 +123,9 @@ class VideoTimelineApp(QWidget):
                 FILE_NAME: audio_path,
                 TIMELINE_START: 0,
                 TIMELINE_END: 0,
-                'start': 0,
-                'end': 0,
-                'type': VisionDataTypeEnum.AUDIO,
+                "start": 0,
+                "end": 0,
+                "type": VisionDataTypeEnum.AUDIO,
             }
             # Add adjustable block for audio segment, full width initially
             audio_block = AudioAdjustableBlock(
@@ -152,17 +152,17 @@ class VideoTimelineApp(QWidget):
         for item in self.timelineView.items():
             if isinstance(item, AdjustableBlock):
                 file_name = item.block_config[FILE_NAME]
-                start = item.block_config['start']
-                end = item.block_config['end']
+                start = item.block_config["start"]
+                end = item.block_config["end"]
                 self.blocks_configs[file_name].start = start
                 self.blocks_configs[file_name].end = end
 
         for file, setting in self.blocks_configs.items():
             segments.append(
                 {
-                    'path': os.path.join(self.work_dir_box.text(), file),
-                    'start': setting.start,
-                    'end': setting.end,
+                    "path": os.path.join(self.work_dir_box.text(), file),
+                    "start": setting.start,
+                    "end": setting.end,
                 }
             )
 
@@ -170,8 +170,8 @@ class VideoTimelineApp(QWidget):
 
     def restart_audio_thread(self):
         # Stop existing thread if running
-        if hasattr(self, 'audio_thread') and self.audio_thread.isRunning():
-            print('Stopping existing audio thread...')
+        if hasattr(self, "audio_thread") and self.audio_thread.isRunning():
+            print("Stopping existing audio thread...")
 
             # Stop loop logic
             self.audio_thread.looper.stop_loop()
@@ -191,11 +191,11 @@ class VideoTimelineApp(QWidget):
 
     def load_config(self):
         config_path, _ = QFileDialog.getOpenFileName(
-            self, 'Open Config File', '', 'JSON Files (*.json)'
+            self, "Open Config File", "", "JSON Files (*.json)"
         )
         if not config_path:
             return
-        if self.work_dir_box.text() == '':
+        if self.work_dir_box.text() == "":
             config_dir = os.path.dirname(config_path)
             self.work_dir_box.setText(config_dir)
         else:
@@ -226,13 +226,13 @@ class VideoTimelineApp(QWidget):
                     FILE_NAME: video_file,
                     TIMELINE_START: start,
                     TIMELINE_END: end,
-                    'duration': duration,
+                    "duration": duration,
                     # add max duration of video to disable expanding for more
-                    'type': VisionDataTypeEnum.VIDEO,
+                    "type": VisionDataTypeEnum.VIDEO,
                 } | block_config_temp[video_file]
 
                 block = AdjustableBlock(
-                    x, 10, width, 200, label='', block_config=block_config
+                    x, 10, width, 200, label="", block_config=block_config
                 )
                 self.timelineScene.addItem(block)
                 full_path = os.path.join(config_dir, video_file)
@@ -262,8 +262,8 @@ class VideoTimelineApp(QWidget):
     def get_work_dir(self):
         folder = QFileDialog.getExistingDirectory(
             self,
-            'Select Folder',
-            '',
+            "Select Folder",
+            "",
             QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks,
         )
         if folder:
@@ -294,11 +294,11 @@ class VideoTimelineApp(QWidget):
 
     def execute_script(self, preview):
         create_instagram_reel(
-            self.blocks_configs, self.work_dir_box.text(), 'test_output.mp4', preview
+            self.blocks_configs, self.work_dir_box.text(), "test_output.mp4", preview
         )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = VideoTimelineApp()
     window.show()
