@@ -1,0 +1,2 @@
+FOLDER_ICON = '📁'
+JSON_ICON = '📄'
