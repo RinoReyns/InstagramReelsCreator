@@ -12,7 +12,7 @@ class AudioLooper(QObject):
         self.end_time = 0
         self.running = False
 
-        self.vlc_instance = vlc.Instance("--quiet")
+        self.vlc_instance = vlc.Instance('--quiet')
         self.player = self.vlc_instance.media_player_new()
         self.media = self.vlc_instance.media_new(self.file_path)
         self.player.set_media(self.media)

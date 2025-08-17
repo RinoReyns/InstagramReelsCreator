@@ -8,7 +8,7 @@ from components.video_processing.video_postprocessing import VideoPostProcessing
 
 from utils.json_handler import json_template_generator, pars_config
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(message)s")
+logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(message)s')
 logger = logging.getLogger(__name__)
 
 MAX_DURATION = 90  # seconds
@@ -34,7 +34,7 @@ def create_instagram_reel(config_file, media_dir, output_path, preview=False):
             logger.info(f"Error processing {filename}: {e}")
 
     if not clips:
-        logger.info("No valid clips to process.")
+        logger.info('No valid clips to process.')
         return
     video_postprocessing = VideoPostProcessing()
     if preview:
@@ -52,27 +52,27 @@ def create_instagram_reel(config_file, media_dir, output_path, preview=False):
 
 def arg_paser():
     parser = argparse.ArgumentParser(
-        description="Validate JSON config file structure.",
+        description='Validate JSON config file structure.',
     )
     parser.add_argument(
-        "--config_path",
+        '--config_path',
         type=str,
         required=True,
-        help="Path to the config JSON file.",
+        help='Path to the config JSON file.',
     )
     parser.add_argument(
-        "--media_dir",
+        '--media_dir',
         type=str,
         required=True,
-        help="Full path to the dir with media.",
+        help='Full path to the dir with media.',
     )
     return parser.parse_args()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     if GENERATE_JSON:
         json_template_generator()
     else:
         args = arg_paser()
         json_file = pars_config(args.config_path)
-        create_instagram_reel(json_file, args.media_dir, "test_output.mp4")
+        create_instagram_reel(json_file, args.media_dir, 'test_output.mp4')

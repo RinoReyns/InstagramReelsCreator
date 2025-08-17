@@ -24,6 +24,7 @@ repos:
       language: node
       types: [ html ]
       additional_dependencies: [ 'eslint', 'eslint-plugin-html' ]
+      # (no language_version here, it's node-based, not Python)
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.11.13
@@ -31,7 +32,4 @@ repos:
     - id: ruff-check
       types_or: [ python, pyi ]
       args: [ --fix, "--target-version", "py311" ]
-      language_version: python3.12
-    - id: ruff-format
-      types_or: [ python, pyi ]
       language_version: python3.12
