@@ -38,7 +38,7 @@ class DownloadThread(QThread):
         super().__init__()
         self.url = url
         self.download_dir = download_dir
-        self.downloaded_file = ""
+        self.downloaded_file = ''
 
     def run(self):
         def progress_hook(d):
