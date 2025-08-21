@@ -208,3 +208,6 @@ __marimo__/
 
 .idea/
 download/
+preview/
+*.mp4
+*.json

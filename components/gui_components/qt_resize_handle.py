@@ -70,7 +70,7 @@ class ResizeHandle(QGraphicsRectItem):
                     0, 0, new_width, self.parent_block.rect().height()
                 )
 
-            self.parent_block.updateHandles()
+            self.parent_block.handler_move_update(self.position)
             # Prevent handle from moving independently
             return QPointF(0, 0)
         return super().itemChange(change, value)
@@ -117,7 +117,7 @@ class ResizeHandle(QGraphicsRectItem):
                 0, 0, new_width, self.parent_block.rect().height()
             )
 
-        self.parent_block.updateHandles()
+        self.parent_block.handler_move_update(self.position, delta)
         event.accept()
 
     def mouseReleaseEvent(self, event):

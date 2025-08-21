@@ -52,14 +52,15 @@ class AdjustableBlock(QGraphicsRectItem):
         self.text_label.setPos(
             5, (height - self.text_label.boundingRect().height()) / 2
         )
-        self._set_label()
 
         self.left_handle = ResizeHandle(self, 'left')
         self.right_handle = ResizeHandle(self, 'right')
-        self.updateHandles()
-
         self._moving = False
+        self._set_label()
+        self.common_block_update()
+
         self._drag_start_x = 0
+
 
     def _set_label(self):
         if self.block_config is not None:
@@ -83,7 +84,21 @@ class AdjustableBlock(QGraphicsRectItem):
                     )
                 )
 
-    def updateHandles(self, move=False):
+    def handler_move_update(self, handler_update='', delta_px=0):
+        self.common_block_update()
+        delta_in_s = delta_px/ PIXELS_PER_SEC
+
+        if handler_update == 'left':
+            self.block_config['start'] = round(self.block_config['start']  + delta_in_s, 2)
+            self.block_config[TIMELINE_START] = round(self.block_config[TIMELINE_START] + delta_in_s, 2)
+        else:
+            self.block_config['end'] = round(self.block_config['end'] + delta_in_s, 2)
+            self.block_config[TIMELINE_END] = round(self.block_config[TIMELINE_END] + delta_in_s, 2)
+
+        self.block_config['duration'] = self.block_config['end'] - self.block_config['start']
+        self._set_label()
+
+    def common_block_update(self):
         # Handle positions
         self.left_handle.setPos(-self.left_handle.rect().width() / 2, 0)
         self.right_handle.setPos(
@@ -94,37 +109,6 @@ class AdjustableBlock(QGraphicsRectItem):
         self.text_label.setPos(
             5, (self.rect().height() - self.text_label.boundingRect().height()) / 2
         )
-        if not move and self.block_config is not None:
-            # Bias values
-            PIXELS_PER_SEC = 50  # or from your class
-            LEFT_BIAS = 0.0  # seconds
-            RIGHT_BIAS = 0.0  # seconds
-
-            # Timeline start (visual position on the timeline)
-            timeline_start = round((self.pos().x() - 7) / PIXELS_PER_SEC - LEFT_BIAS, 2)
-
-            # Calculate how much was trimmed on the left (in seconds)
-            left_trim_pixels = self.left_handle.pos().x() / 2
-            left_trim_seconds = round(left_trim_pixels / PIXELS_PER_SEC, 2)
-
-            # New internal clip start = original start + left trim
-            internal_start = max(0.0, self.block_config['start'] + left_trim_seconds)
-            internal_end = round(
-                (internal_start + self.rect().width()) / PIXELS_PER_SEC - RIGHT_BIAS, 2
-            )
-
-            # Update duration (safe against negatives)
-            duration = round(internal_end - internal_start, 2)
-            duration = max(duration, 0.0)
-
-            # # Set block config values
-            self.block_config['start'] = internal_start
-            self.block_config['end'] = internal_end
-            self.block_config['duration'] = duration
-
-            self.block_config[TIMELINE_START] = round(timeline_start, 2)
-            self.block_config[TIMELINE_END] = round(timeline_start + duration, 2)
-            self._set_label()
 
     def mousePressEvent(self, event):
         self._drag_start_x = event.scenePos().x()
@@ -165,15 +149,19 @@ class AdjustableBlock(QGraphicsRectItem):
                         self.block_config['duration'], 2
                     )
 
-            self.updateHandles(True)
-            self._set_label()
+
+
+                self.block_config[TIMELINE_START] = round(self.block_config[TIMELINE_START] + delta_seconds, 2)
+                self.block_config[TIMELINE_END] = round(self.block_config[TIMELINE_END] + delta_seconds, 2)
+                self._set_label()
+            self.common_block_update()
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
         self._moving = False
         self.handles_movable = True  # Re-enable handle moves
         self.setCursor(Qt.OpenHandCursor)
-        self.updateHandles()
+        self.common_block_update()
         super().mouseReleaseEvent(event)
 
 

@@ -3,6 +3,7 @@ import sys
 import threading
 
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
     QApplication,
     QWidget,
@@ -30,12 +31,12 @@ from utils.data_structures import (
     VisionDataTypeEnum,
     FILE_NAME,
     TIMELINE_START,
-    TIMELINE_END,
+    TIMELINE_END, MediaClip,INIT_AUDIO_LENGTH_S
 )
 
 from components.gui_components.qt_waveform_item import WaveformItem
-from utils.data_structures import PIXELS_PER_SEC, MAX_VIDEO_DURATION
-from main import create_instagram_reel
+from utils.data_structures import PIXELS_PER_SEC, MAX_VIDEO_DURATION, TransitionTypeEnum
+from main import create_instagram_reel, logger
 
 from components.audio_processing.dowload_music import DownloadThread
 
@@ -93,7 +94,7 @@ class VideoTimelineApp(QWidget):
         self.blocks = []
 
         # Audio Timeline
-        self.loadAudioBtn = QPushButton('Load External Audio')
+        self.loadAudioBtn = QPushButton('Load Audio')
         self.playAudioBtn = QPushButton('Play')
         self.pauseAudioBtn = QPushButton('Pause')
         self.stopAudioBtn = QPushButton('Stop')
@@ -141,14 +142,14 @@ class VideoTimelineApp(QWidget):
         block_config = {
             FILE_NAME: audio_path,
             TIMELINE_START: 0,
-            TIMELINE_END: 0,
+            TIMELINE_END: INIT_AUDIO_LENGTH_S,
             'start': 0,
-            'end': 0,
+            'end': INIT_AUDIO_LENGTH_S,
             'type': VisionDataTypeEnum.AUDIO,
         }
         # Add adjustable block for audio segment, full width initially
         audio_block = AudioAdjustableBlock(
-            0, 5, 800, 115, block_config=block_config
+            0, 5, INIT_AUDIO_LENGTH_S*PIXELS_PER_SEC, 115, block_config=block_config
         )
         self.audioTimelineScene.addItem(audio_block)
         self.draw_audio_time_grid(int(waveform.duration))
@@ -212,14 +213,30 @@ class VideoTimelineApp(QWidget):
                 self.blocks_configs[file_name].start = start
                 self.blocks_configs[file_name].end = end
 
+        for item in self.audioTimelineScene.items():
+            if isinstance(item, AudioAdjustableBlock):
+                file_name = item.block_config[FILE_NAME]
+                start = item.block_config['start']
+                end = item.block_config['end']
+                if file_name not in self.blocks_configs:
+                    self.blocks_configs[file_name] = MediaClip(start=start,
+                                                               end=end,
+                                                               transition=TransitionTypeEnum.NONE,
+                                                               type=VisionDataTypeEnum.AUDIO,
+                                                               video_resampling=0)
+                else:
+                    self.blocks_configs[file_name].start = start
+                    self.blocks_configs[file_name].end = end
+
         for file, setting in self.blocks_configs.items():
-            segments.append(
-                {
-                    'path': os.path.join(self.work_dir_box.text(), file),
-                    'start': setting.start,
-                    'end': setting.end,
-                }
-            )
+            if setting.type != VisionDataTypeEnum.AUDIO:
+                segments.append(
+                    {
+                        'path': os.path.join(self.work_dir_box.text(), file),
+                        'start': setting.start,
+                        'end': setting.end,
+                    }
+                )
 
         return segments
 
@@ -262,6 +279,8 @@ class VideoTimelineApp(QWidget):
         start = 0
         end = 0
         for video_file, settings in config_data.items():
+            if settings.type == VisionDataTypeEnum.AUDIO:
+                continue
             try:
                 duration = max(0, min(settings.end, MAX_VIDEO_DURATION)) - max(
                     0, min(settings.start, MAX_VIDEO_DURATION)
@@ -271,7 +290,7 @@ class VideoTimelineApp(QWidget):
                 x = 10 + start * PIXELS_PER_SEC
 
                 if width <= 0:
-                    print(f"Skipping {video_file} because width <= 0")
+                    logger.warning(f"Skipping {video_file} because width <= 0")
                     continue
                 # TODO:
                 # handle order change
@@ -307,7 +326,7 @@ class VideoTimelineApp(QWidget):
     def render_preview(self):
         self.update_blocks_configs()
         # TODO:
-        # review in one file
+        # preview in one file
         self.run_main_script(True)
 
     def final_render(self):
@@ -355,6 +374,8 @@ class VideoTimelineApp(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    font = QFont('Arial', 9)  # (family, point size)
+    app.setFont(font)  # apply globally
     window = VideoTimelineApp()
     window.show()
     sys.exit(app.exec_())

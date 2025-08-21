@@ -155,7 +155,7 @@ class VideoPreprocessing:
                     f"End time {end}s exceeds video duration {clip.duration:.2f}s for file: {file_path}",
                 )
                 end = clip.duration
-            clip = clip.subclip(start, end)
+            clip = clip.subclipped(start, end)
 
         elif media_type == VisionDataTypeEnum.PHOTO.value:
             duration = end - start
@@ -163,9 +163,9 @@ class VideoPreprocessing:
                 full_path,
                 INSTAGRAM_RESOLUTION,
             )
-            clip = ImageClip(formatted_img).set_duration(duration)
+            clip = ImageClip(formatted_img).with_duration(duration)
         else:
             raise ValueError(f"Unsupported media type: {media_type}")
 
-        loaded_video.clip = clip.set_duration(end - start).set_fps(self.INSTAGRAM_FPS)
+        loaded_video.clip = clip.with_duration(end - start).with_fps(self.INSTAGRAM_FPS)
         return loaded_video
