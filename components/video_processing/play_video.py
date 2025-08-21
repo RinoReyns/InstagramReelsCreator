@@ -1,4 +1,6 @@
+import os
 import sys
+
 import vlc
 from PyQt5.QtWidgets import (
     QWidget,
@@ -12,6 +14,9 @@ import time
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QLabel
+from utils.data_structures import Segment
+from components.video_processing.fast_video_concat import FFmpegConcat
+
 
 
 class VideoPlayerUI(QWidget):
@@ -132,10 +137,17 @@ class VideoPlayerUI(QWidget):
             ]
             self.total_duration = sum(s['end'] - s['start'] for s in self.segments)
 
-    def fast_preview(self, segments: None | list[dict] = None):
-        if segments is not None and len(segments) != 0:
-            self.segments = segments
-            self.total_duration = sum(s['end'] - s['start'] for s in self.segments)
+    def fast_preview(self, video_segments: None | list[Segment] = None, output_folder: str = '',
+                     audio_segments: None | list[Segment] = None):
+        if video_segments is not None and len(video_segments) != 0:
+            os.makedirs(output_folder, exist_ok=True)
+            output_file = os.path.join(output_folder, 'fast_preview.mkv')
+            _, self.total_duration  = FFmpegConcat().concat_segments(video_segments, output_file, audio_segments)
+            self.segments = [{
+                        'path': output_file,
+                        'start': 0.0,
+                        'end': self.total_duration,
+                    }]
             self.stop()
             self.play()
 

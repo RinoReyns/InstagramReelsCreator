@@ -39,7 +39,7 @@ class VideoPostProcessing:
             new_w = int(target_h * clip_ar)
 
         # Now actually resize the clip
-        resized_clip = clip.clip.resize(newsize=(new_w, new_h))
+        resized_clip = clip.clip.resized(new_size=(new_w, new_h))
 
         # Create a background (black)
         background = ColorClip(
@@ -54,10 +54,10 @@ class VideoPostProcessing:
 
         # Overlay the resized clip in the center of the background
         composed = CompositeVideoClip(
-            [background, resized_clip.set_position('center')],
+            [background, resized_clip.with_position('center')],
             size=target_size,
         )
-        clip.clip = composed.set_duration(clip.clip.duration).set_audio(
+        clip.clip = composed.with_duration(clip.clip.duration).with_audio(
             resized_clip.audio
         )
         return clip
