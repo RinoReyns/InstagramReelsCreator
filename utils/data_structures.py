@@ -41,3 +41,10 @@ MAX_VIDEO_DURATION = 90
 FILE_NAME = 'name'
 TIMELINE_START = 'timeline_start'
 TIMELINE_END = 'timeline_end'
+
+
+@dataclass
+class Segment:
+    path: str
+    start: float
+    end: float

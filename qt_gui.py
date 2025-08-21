@@ -39,7 +39,7 @@ from utils.data_structures import PIXELS_PER_SEC, MAX_VIDEO_DURATION, Transition
 from main import create_instagram_reel, logger
 
 from components.audio_processing.dowload_music import DownloadThread
-
+from utils.data_structures import Segment
 
 class VideoTimelineApp(QWidget):
     DOWNLOAD_DIR = 'download'
@@ -203,8 +203,6 @@ class VideoTimelineApp(QWidget):
         return None
 
     def update_blocks_configs(self):
-        segments = []
-
         for item in self.timelineView.items():
             if isinstance(item, AdjustableBlock):
                 file_name = item.block_config[FILE_NAME]
@@ -228,17 +226,24 @@ class VideoTimelineApp(QWidget):
                     self.blocks_configs[file_name].start = start
                     self.blocks_configs[file_name].end = end
 
+        segments_video = []
+        segments_audio = []
         for file, setting in self.blocks_configs.items():
             if setting.type != VisionDataTypeEnum.AUDIO:
-                segments.append(
-                    {
-                        'path': os.path.join(self.work_dir_box.text(), file),
-                        'start': setting.start,
-                        'end': setting.end,
-                    }
+                segments_video.append(
+                    Segment(path=str(os.path.join(self.work_dir_box.text(), file)),
+                            start=setting.start,
+                            end=setting.end)
+                )
+            elif setting.type == VisionDataTypeEnum.AUDIO:
+                segments_audio.append(
+                    Segment(path=str(os.path.join(self.work_dir_box.text(), file)),
+                            start=setting.start,
+                            end=setting.end)
                 )
 
-        return segments
+
+        return segments_video, segments_audio
 
     def restart_audio_thread(self):
         # Stop existing thread if running
@@ -319,9 +324,9 @@ class VideoTimelineApp(QWidget):
         self.draw_video_time_grid(MAX_VIDEO_DURATION)
 
     def fast_preview(self):
-        segments = self.update_blocks_configs()
-        self.video_frame.fast_preview(segments)
-        self.play_audio()
+        video_segments, audio_segments = self.update_blocks_configs()
+        self.video_frame.fast_preview(video_segments, os.path.abspath('preview') ,audio_segments)
+        #self.play_audio()
 
     def render_preview(self):
         self.update_blocks_configs()
