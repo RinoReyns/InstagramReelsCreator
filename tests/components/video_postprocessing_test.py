@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock, call
 
 from components.video_processing.video_preprocessing import VideoPreprocessing
-from utils.data_structures import MediaClip, VisionDataTypeEnum, LoadedVideo
+from utils.data_structures import MediaClip, DataTypeEnum, LoadedVideo
 
 
 class TestVideoPreprocessing(unittest.TestCase):
@@ -69,13 +69,7 @@ class TestVideoPreprocessing(unittest.TestCase):
         clip_mock.subclip.return_value = clip_mock
         mock_videoclip.return_value = clip_mock
 
-        entry = MediaClip(
-            type=VisionDataTypeEnum.VIDEO.value,
-            start=0,
-            end=5,
-            video_resampling=True,
-            transition=None
-        )
+        entry = MediaClip(type=DataTypeEnum.VIDEO.value, start=0, end=5, video_resampling=True, transition=None)
 
         # Patch is_variable_framerate to avoid actual ffprobe
         with patch.object(self.vp, 'is_variable_framerate', return_value=(False, 30)):
@@ -92,13 +86,7 @@ class TestVideoPreprocessing(unittest.TestCase):
         mock_imageclip.return_value = img_clip_mock
         mock_format.return_value = 'formatted.jpg'
 
-        entry = MediaClip(
-            type=VisionDataTypeEnum.PHOTO.value,
-            start=0,
-            end=5,
-            video_resampling=False,
-            transition=None
-        )
+        entry = MediaClip(type=DataTypeEnum.PHOTO.value, start=0, end=5, video_resampling=False, transition=None)
 
         loaded = self.vp.process_entry(self.file_path, entry, self.media_dir)
 
@@ -107,13 +95,7 @@ class TestVideoPreprocessing(unittest.TestCase):
         self.assertIsInstance(loaded, LoadedVideo)
 
     def test_process_entry_invalid_type(self):
-        entry = MediaClip(
-            type='unsupported',
-            start=0,
-            end=1,
-            video_resampling=False,
-            transition=None
-        )
+        entry = MediaClip(type='unsupported', start=0, end=1, video_resampling=False, transition=None)
 
         with self.assertRaises(ValueError):
             self.vp.process_entry(self.file_path, entry, self.media_dir)

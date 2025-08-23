@@ -27,12 +27,7 @@ from components.gui_components.qt_timeline_block import (
 from components.audio_processing.play_audio import AudioThread
 from components.video_processing.play_video import VideoPlayerUI
 from utils.json_handler import media_clips_to_json, pars_config
-from utils.data_structures import (
-    VisionDataTypeEnum,
-    FILE_NAME,
-    TIMELINE_START,
-    TIMELINE_END, MediaClip,INIT_AUDIO_LENGTH_S
-)
+from utils.data_structures import DataTypeEnum, FILE_NAME, TIMELINE_START, TIMELINE_END, MediaClip, INIT_AUDIO_LENGTH_S
 
 from components.gui_components.qt_waveform_item import WaveformItem
 from utils.data_structures import PIXELS_PER_SEC, MAX_VIDEO_DURATION, TransitionTypeEnum
@@ -40,9 +35,12 @@ from main import create_instagram_reel, logger
 
 from components.audio_processing.dowload_music import DownloadThread
 from utils.data_structures import Segment
+from pathlib import Path
+
 
 class VideoTimelineApp(QWidget):
     DOWNLOAD_DIR = 'download'
+    AUDIO_SELECTOR_HEIGHT = 145
 
     def __init__(self):
         super().__init__()
@@ -104,7 +102,7 @@ class VideoTimelineApp(QWidget):
         self.audioTimelineView = QGraphicsView()
         self.audioTimelineScene = QGraphicsScene()
         self.audioTimelineView.setScene(self.audioTimelineScene)
-        self.audioTimelineView.setFixedHeight(200)
+        self.audioTimelineView.setFixedHeight(220)
         self.layout.addWidget(QLabel('Audio Timeline:'))
         audio_controls_layout = QHBoxLayout()
         audio_download_controls_layout = QHBoxLayout()
@@ -118,22 +116,20 @@ class VideoTimelineApp(QWidget):
 
         self.layout.addLayout(audio_download_controls_layout)
         self.layout.addWidget(self.audioTimelineView)
-        self.draw_audio_time_grid(MAX_VIDEO_DURATION)
+        self.draw_audio_time_grid(MAX_VIDEO_DURATION, self.AUDIO_SELECTOR_HEIGHT)
         self.loadAudioBtn.clicked.connect(self.load_audio_window)
         self.downloadAudioBtn.clicked.connect(self.download_audio)
         self.audio_thread = None
 
     def load_audio_window(self):
-        audio_path, _ = QFileDialog.getOpenFileName(
-            self, 'Open Audio File', '', 'Audio Files (*.wav *.mp3)'
-        )
+        audio_path, _ = QFileDialog.getOpenFileName(self, 'Open Audio File', '', 'Audio Files (*.wav *.mp3)')
         self.load_external_audio(audio_path)
 
-    def load_external_audio(self, audio_path):
+    def load_external_audio(self, audio_path, start=0, stop=INIT_AUDIO_LENGTH_S):
         if not audio_path:
             self.show_warning('None audio file was loaded.')
             return
-        self.audio_path = audio_path
+        self.audio_path = Path(audio_path)
         self.audioTimelineScene.clear()
         height = 120
         waveform = WaveformItem(width=800, height=height)
@@ -141,18 +137,23 @@ class VideoTimelineApp(QWidget):
         self.audioTimelineScene.addItem(waveform)
         block_config = {
             FILE_NAME: audio_path,
-            TIMELINE_START: 0,
-            TIMELINE_END: INIT_AUDIO_LENGTH_S,
-            'start': 0,
-            'end': INIT_AUDIO_LENGTH_S,
-            'type': VisionDataTypeEnum.AUDIO,
+            TIMELINE_START: start,
+            TIMELINE_END: stop,
+            'start': start,
+            'end': stop,
+            'type': DataTypeEnum.AUDIO,
         }
         # Add adjustable block for audio segment, full width initially
+
         audio_block = AudioAdjustableBlock(
-            0, 5, INIT_AUDIO_LENGTH_S*PIXELS_PER_SEC, 115, block_config=block_config
+            start * PIXELS_PER_SEC,
+            5,
+            INIT_AUDIO_LENGTH_S * PIXELS_PER_SEC,
+            self.AUDIO_SELECTOR_HEIGHT,
+            block_config=block_config,
         )
         self.audioTimelineScene.addItem(audio_block)
-        self.draw_audio_time_grid(int(waveform.duration))
+        self.draw_audio_time_grid(int(waveform.duration), self.AUDIO_SELECTOR_HEIGHT + 5)
         self.audio_thread = AudioThread(audio_path)
 
         self.playAudioBtn.clicked.connect(self.play_audio)
@@ -178,7 +179,6 @@ class VideoTimelineApp(QWidget):
         self.progress_dialog.setMinimumDuration(0)
         self.progress_dialog.resize(400, 100)
         self.progress_dialog.show()
-
 
         # Start download thread
         self.thread = DownloadThread(self.audio_url_box.text(), self.DOWNLOAD_DIR)
@@ -217,11 +217,13 @@ class VideoTimelineApp(QWidget):
                 start = item.block_config['start']
                 end = item.block_config['end']
                 if file_name not in self.blocks_configs:
-                    self.blocks_configs[file_name] = MediaClip(start=start,
-                                                               end=end,
-                                                               transition=TransitionTypeEnum.NONE,
-                                                               type=VisionDataTypeEnum.AUDIO,
-                                                               video_resampling=0)
+                    self.blocks_configs[file_name] = MediaClip(
+                        start=start,
+                        end=end,
+                        transition=TransitionTypeEnum.NONE,
+                        type=DataTypeEnum.AUDIO,
+                        video_resampling=0,
+                    )
                 else:
                     self.blocks_configs[file_name].start = start
                     self.blocks_configs[file_name].end = end
@@ -229,19 +231,18 @@ class VideoTimelineApp(QWidget):
         segments_video = []
         segments_audio = []
         for file, setting in self.blocks_configs.items():
-            if setting.type != VisionDataTypeEnum.AUDIO:
+            if setting.type != DataTypeEnum.AUDIO:
                 segments_video.append(
-                    Segment(path=str(os.path.join(self.work_dir_box.text(), file)),
-                            start=setting.start,
-                            end=setting.end)
+                    Segment(
+                        path=str(os.path.join(self.work_dir_box.text(), file)), start=setting.start, end=setting.end
+                    )
                 )
-            elif setting.type == VisionDataTypeEnum.AUDIO:
+            elif setting.type == DataTypeEnum.AUDIO:
                 segments_audio.append(
-                    Segment(path=str(os.path.join(self.work_dir_box.text(), file)),
-                            start=setting.start,
-                            end=setting.end)
+                    Segment(
+                        path=str(os.path.join(self.work_dir_box.text(), file)), start=setting.start, end=setting.end
+                    )
                 )
-
 
         return segments_video, segments_audio
 
@@ -262,14 +263,10 @@ class VideoTimelineApp(QWidget):
             if params is not None:
                 self.restart_audio_thread()
                 self.audio_thread.finished.connect(self.audio_thread.stop_loop)
-                self.audio_thread.start_loop(
-                    max(params[TIMELINE_START], 0), params[TIMELINE_END]
-                )
+                self.audio_thread.start_loop(max(params[TIMELINE_START], 0), params[TIMELINE_END])
 
     def load_config(self):
-        config_path, _ = QFileDialog.getOpenFileName(
-            self, 'Open Config File', '', 'JSON Files (*.json)'
-        )
+        config_path, _ = QFileDialog.getOpenFileName(self, 'Open Config File', '', 'JSON Files (*.json)')
         if not config_path:
             return
         if self.work_dir_box.text() == '':
@@ -283,9 +280,11 @@ class VideoTimelineApp(QWidget):
         self.timelineScene.clear()
         start = 0
         end = 0
-        for video_file, settings in config_data.items():
-            if settings.type == VisionDataTypeEnum.AUDIO:
+        for file, settings in config_data.items():
+            if settings.type == DataTypeEnum.AUDIO:
+                self.load_external_audio(file, settings.start, settings.end)
                 continue
+
             try:
                 duration = max(0, min(settings.end, MAX_VIDEO_DURATION)) - max(
                     0, min(settings.start, MAX_VIDEO_DURATION)
@@ -295,38 +294,35 @@ class VideoTimelineApp(QWidget):
                 x = 10 + start * PIXELS_PER_SEC
 
                 if width <= 0:
-                    logger.warning(f"Skipping {video_file} because width <= 0")
+                    logger.warning(f"Skipping {file} because width <= 0")
                     continue
                 # TODO:
                 # handle order change
-                self.blocks_configs[video_file] = settings
-                block_config_temp = media_clips_to_json({video_file: settings})
+                self.blocks_configs[file] = settings
+                block_config_temp = media_clips_to_json({file: settings})
                 block_config = {
-                    FILE_NAME: video_file,
+                    FILE_NAME: file,
                     TIMELINE_START: start,
                     TIMELINE_END: end,
                     'duration': duration,
                     # add max duration of video to disable expanding for more
-                    'type': VisionDataTypeEnum.VIDEO,
-                } | block_config_temp[video_file]
+                    'type': DataTypeEnum.VIDEO,
+                } | block_config_temp[file]
 
-                block = AdjustableBlock(
-                    x, 10, width, 200, label='', block_config=block_config
-                )
+                block = AdjustableBlock(x, 10, width, 200, label='', block_config=block_config)
                 self.timelineScene.addItem(block)
-                full_path = os.path.join(config_dir, video_file)
+                full_path = os.path.join(config_dir, file)
                 if not os.path.exists(full_path):
                     print(f"Warning: file not found {full_path}")
                 self.video_clips[full_path] = settings
             except Exception as e:
-                print(f"Error processing {video_file}: {e}")
+                print(f"Error processing {file}: {e}")
             start = end
         self.draw_video_time_grid(MAX_VIDEO_DURATION)
 
     def fast_preview(self):
         video_segments, audio_segments = self.update_blocks_configs()
-        self.video_frame.fast_preview(video_segments, os.path.abspath('preview') ,audio_segments)
-        #self.play_audio()
+        self.video_frame.fast_preview(video_segments, os.path.abspath('preview'), audio_segments)
 
     def render_preview(self):
         self.update_blocks_configs()
@@ -356,25 +352,21 @@ class VideoTimelineApp(QWidget):
             label.setPos(x + 2, 220)
             self.timelineScene.addItem(label)
 
-    def draw_audio_time_grid(self, max_seconds):
+    def draw_audio_time_grid(self, max_seconds, height):
         for second in range(max_seconds + 1):
             x = 10 + second * PIXELS_PER_SEC
-            self.audioTimelineScene.addLine(x, 0, x, 120, Qt.gray)
+            self.audioTimelineScene.addLine(x, 0, x, height, Qt.gray)
             label = QGraphicsTextItem(f"{second}s")
-            label.setPos(x + 2, 120)
+            label.setPos(x + 2, height)
             self.audioTimelineScene.addItem(label)
 
     def run_main_script(self, preview: bool = False):
         # TODO:
         # add checks
-        threading.Thread(
-            target=self.execute_script, args=(preview,), daemon=True
-        ).start()
+        threading.Thread(target=self.execute_script, args=(preview,), daemon=True).start()
 
     def execute_script(self, preview):
-        create_instagram_reel(
-            self.blocks_configs, self.work_dir_box.text(), 'test_output.mp4', preview
-        )
+        create_instagram_reel(self.blocks_configs, self.work_dir_box.text(), 'test_output.mp4', preview)
 
 
 if __name__ == '__main__':

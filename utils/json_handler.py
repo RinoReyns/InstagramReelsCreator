@@ -6,7 +6,7 @@ import logging
 import os
 from dataclasses import asdict, fields
 
-from utils.data_structures import MediaClip, VisionDataTypeEnum, TransitionTypeEnum
+from utils.data_structures import MediaClip, DataTypeEnum, TransitionTypeEnum
 
 # Configure logger
 logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(message)s')
@@ -37,9 +37,9 @@ def pars_config(file_path):
 def detect_type(filename):
     ext = os.path.splitext(filename)[1].lower()
     if ext in VIDEO_EXTENSIONS:
-        return VisionDataTypeEnum.VIDEO
+        return DataTypeEnum.VIDEO
     elif ext in PHOTO_EXTENSIONS:
-        return VisionDataTypeEnum.PHOTO
+        return DataTypeEnum.PHOTO
     else:
         return None
 
@@ -92,7 +92,7 @@ def media_clips_from_json(filepath: str) -> dict[str, MediaClip]:
             end=value[fields(MediaClip)[1].name],
             transition=TransitionTypeEnum(value[fields(MediaClip)[2].name]),
             # Convert string to Enum
-            type=VisionDataTypeEnum(value[fields(MediaClip)[3].name]),
+            type=DataTypeEnum(value[fields(MediaClip)[3].name]),
             video_resampling=value[fields(MediaClip)[4].name],
         )
         for key, value in load_json(filepath).items()

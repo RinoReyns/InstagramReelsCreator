@@ -52,15 +52,11 @@ class VideoTransitions:
 
             # Slide clip1 out left
             if x_offset > blend_width:
-                frame[:, : x_offset - blend_width] = frame1[
-                    :, w - x_offset + blend_width : w
-                ]
+                frame[:, : x_offset - blend_width] = frame1[:, w - x_offset + blend_width : w]
 
             # Slide clip2 in right
             if x_offset + blend_width < w:
-                frame[:, x_offset + blend_width :] = frame2[
-                    :, : w - (x_offset + blend_width)
-                ]
+                frame[:, x_offset + blend_width :] = frame2[:, : w - (x_offset + blend_width)]
 
             # Blend seam area with linear alpha
             if 0 < x_offset < w:
@@ -71,9 +67,7 @@ class VideoTransitions:
 
                     if 0 <= col1 < w and 0 <= col2 < w:
                         # Blend the two columns at seam
-                        frame[:, col2] = (
-                            frame1[:, col1] * (1 - alpha) + frame2[:, col2] * alpha
-                        ).astype(np.uint8)
+                        frame[:, col2] = (frame1[:, col1] * (1 - alpha) + frame2[:, col2] * alpha).astype(np.uint8)
 
             output_frames.append(frame)
 
@@ -146,10 +140,7 @@ class VideoTransitions:
             alpha2 = progress
             rotated2 = self.rotate_frame(frame2, angle2, output_size)
 
-            blended = (
-                rotated1.astype(np.float32) * alpha1
-                + rotated2.astype(np.float32) * alpha2
-            ).astype(np.uint8)
+            blended = (rotated1.astype(np.float32) * alpha1 + rotated2.astype(np.float32) * alpha2).astype(np.uint8)
             output_frames.append(blended)
 
         # Post-transition frames from clip2
@@ -182,20 +173,14 @@ class VideoTransitions:
             pad_y1 = (h - new_h) // 2
             pad_x2 = w - new_w - pad_x1
             pad_y2 = h - new_h - pad_y1
-            padded = cv2.copyMakeBorder(
-                resized, pad_y1, pad_y2, pad_x1, pad_x2, cv2.BORDER_CONSTANT, value=0
-            )
+            padded = cv2.copyMakeBorder(resized, pad_y1, pad_y2, pad_x1, pad_x2, cv2.BORDER_CONSTANT, value=0)
             return padded
 
     def zoom_transition(self, clip1, clip2, duration=0.1, fps=30, direction='in_out'):
         transition_frames = int(duration * fps)
 
-        frames1_gen = (
-            clip1.get_frame(t) for t in np.arange(0, clip1.duration, 1 / fps)
-        )
-        frames2_gen = (
-            clip2.get_frame(t) for t in np.arange(0, clip2.duration, 1 / fps)
-        )
+        frames1_gen = (clip1.get_frame(t) for t in np.arange(0, clip1.duration, 1 / fps))
+        frames2_gen = (clip2.get_frame(t) for t in np.arange(0, clip2.duration, 1 / fps))
 
         output_frames = []
         total_frames1 = int(clip1.duration * fps)
@@ -222,9 +207,7 @@ class VideoTransitions:
                 scale1 = 1.2 - 0.2 * progress
                 scale2 = 1.2 - 0.2 * progress
             else:
-                raise ValueError(
-                    "Invalid direction. Use 'in_out', 'out_in', 'in', or 'out'."
-                )
+                raise ValueError("Invalid direction. Use 'in_out', 'out_in', 'in', or 'out'.")
 
             alpha1 = 1 - progress
             alpha2 = progress
@@ -232,10 +215,7 @@ class VideoTransitions:
             zoomed1 = self.zoom_frame(frame1, scale1)
             zoomed2 = self.zoom_frame(frame2, scale2)
 
-            blended = (
-                zoomed1.astype(np.float32) * alpha1
-                + zoomed2.astype(np.float32) * alpha2
-            ).astype(np.uint8)
+            blended = (zoomed1.astype(np.float32) * alpha1 + zoomed2.astype(np.float32) * alpha2).astype(np.uint8)
             output_frames.append(blended)
 
         for frame in frames2_gen:

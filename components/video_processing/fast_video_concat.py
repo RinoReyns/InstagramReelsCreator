@@ -44,12 +44,17 @@ class FFmpegConcat:
         for i, seg in enumerate(video_segments):
             tmp_file = os.path.join(tmp_dir, f"video_part_{i}.mkv")
             args = [
-                '-hide_banner', '-y',
-                '-ss', str(seg.start),
-                '-to', str(seg.end),
-                '-i', seg.path,
-                '-c', 'copy',
-                tmp_file
+                '-hide_banner',
+                '-y',
+                '-ss',
+                str(seg.start),
+                '-to',
+                str(seg.end),
+                '-i',
+                seg.path,
+                '-c',
+                'copy',
+                tmp_file,
             ]
             print('Trimming video:', ' '.join(['ffmpeg'] + args))
             if not self._run_ffmpeg(args):
@@ -63,13 +68,7 @@ class FFmpegConcat:
             for tmp in tmp_video_files:
                 f.write(f"file '{os.path.abspath(tmp)}'\n")
         concat_video = os.path.join(tmp_dir, 'concat_video.mkv')
-        args = [
-            '-hide_banner', '-y',
-            '-f', 'concat', '-safe', '0',
-            '-i', video_list_path,
-            '-c', 'copy',
-            concat_video
-        ]
+        args = ['-hide_banner', '-y', '-f', 'concat', '-safe', '0', '-i', video_list_path, '-c', 'copy', concat_video]
         print('Concatenating video:', ' '.join(['ffmpeg'] + args))
         if not self._run_ffmpeg(args):
             return False, 0.0
@@ -80,12 +79,17 @@ class FFmpegConcat:
             for i, seg in enumerate(audio_segments):
                 tmp_file = os.path.join(tmp_dir, f"audio_part_{i}.mkv")
                 args = [
-                    '-hide_banner', '-y',
-                    '-ss', str(seg.start),
-                    '-to', str(seg.end),
-                    '-i', seg.path,
-                    '-c', 'copy',
-                    tmp_file
+                    '-hide_banner',
+                    '-y',
+                    '-ss',
+                    str(seg.start),
+                    '-to',
+                    str(seg.end),
+                    '-i',
+                    seg.path,
+                    '-c',
+                    'copy',
+                    tmp_file,
                 ]
                 print('Trimming audio:', ' '.join(['ffmpeg'] + args))
                 if not self._run_ffmpeg(args):
@@ -99,11 +103,17 @@ class FFmpegConcat:
 
             final_audio = os.path.join(tmp_dir, 'concat_audio.mkv')
             args = [
-                '-hide_banner', '-y',
-                '-f', 'concat', '-safe', '0',
-                '-i', audio_list_path,
-                '-c', 'copy',
-                final_audio
+                '-hide_banner',
+                '-y',
+                '-f',
+                'concat',
+                '-safe',
+                '0',
+                '-i',
+                audio_list_path,
+                '-c',
+                'copy',
+                final_audio,
             ]
             print('Concatenating audio:', ' '.join(['ffmpeg'] + args))
             if not self._run_ffmpeg(args):
@@ -112,14 +122,21 @@ class FFmpegConcat:
         # Step 4: mux video + audio into final output
         if final_audio:
             args = [
-                '-hide_banner', '-y',
-                '-i', concat_video,
-                '-i', final_audio,
-                '-c:v', 'copy',
-                '-c:a', 'copy',
-                '-map', '0:v:0',
-                '-map', '1:a:0',
-                out_path
+                '-hide_banner',
+                '-y',
+                '-i',
+                concat_video,
+                '-i',
+                final_audio,
+                '-c:v',
+                'copy',
+                '-c:a',
+                'copy',
+                '-map',
+                '0:v:0',
+                '-map',
+                '1:a:0',
+                out_path,
             ]
             print('Muxing final video + audio:', ' '.join(['ffmpeg'] + args))
             if not self._run_ffmpeg(args):
@@ -128,7 +145,16 @@ class FFmpegConcat:
             os.rename(concat_video, out_path)
 
         # Step 5: cleanup temp files
-        for tmp in tmp_video_files + tmp_audio_files + [video_list_path, audio_list_path if audio_segments else '', concat_video, final_audio if final_audio else '']:
+        for tmp in (
+            tmp_video_files
+            + tmp_audio_files
+            + [
+                video_list_path,
+                audio_list_path if audio_segments else '',
+                concat_video,
+                final_audio if final_audio else '',
+            ]
+        ):
             try:
                 if tmp and os.path.exists(tmp):
                     os.remove(tmp)

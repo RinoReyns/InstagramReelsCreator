@@ -3,7 +3,7 @@ import logging
 import subprocess
 
 from utils.data_structures import (
-    VisionDataTypeEnum,
+    DataTypeEnum,
     MediaClip,
     LoadedVideo,
     INSTAGRAM_RESOLUTION,
@@ -142,7 +142,7 @@ class VideoPreprocessing:
         end = entry.end
         loaded_video = LoadedVideo(transition=entry.transition)
 
-        if media_type == VisionDataTypeEnum.VIDEO.value:
+        if media_type == DataTypeEnum.VIDEO.value:
             # Detect and convert VFR to CFR
             status, avg_fps = self.is_variable_framerate(full_path)
             if status and entry.video_resampling:
@@ -157,7 +157,7 @@ class VideoPreprocessing:
                 end = clip.duration
             clip = clip.subclipped(start, end)
 
-        elif media_type == VisionDataTypeEnum.PHOTO.value:
+        elif media_type == DataTypeEnum.PHOTO.value:
             duration = end - start
             formatted_img = format_photo_to_vertical(
                 full_path,

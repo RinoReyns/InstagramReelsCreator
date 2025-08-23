@@ -7,6 +7,7 @@ from components.video_processing.video_preprocessing import VideoPreprocessing
 from components.video_processing.video_postprocessing import VideoPostProcessing
 
 from utils.json_handler import json_template_generator, pars_config
+from utils.data_structures import DataTypeEnum
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(message)s')
 logger = logging.getLogger(__name__)
@@ -20,18 +21,24 @@ def create_instagram_reel(config_file, media_dir, output_path, preview=False):
     video_preprocessing.cleanup_temp_files()
     clips = []
     total_duration = 0
+    audio_path = ''
+    audio_start = 0
     for filename, entry in config_file.items():
-        try:
-            clip = video_preprocessing.process_entry(filename, entry, media_dir)
-            duration = clip.clip.duration
-            if total_duration + duration > MAX_DURATION:
-                logger.info(f"Skipping {filename}, would exceed max duration.")
-                continue
+        if entry.type == DataTypeEnum.AUDIO:
+            audio_path = filename
+            audio_start = entry.start
+        else:
+            try:
+                clip = video_preprocessing.process_entry(filename, entry, media_dir)
+                duration = clip.clip.duration
+                if total_duration + duration > MAX_DURATION:
+                    logger.info(f"Skipping {filename}, would exceed max duration.")
+                    continue
 
-            clips.append(clip)
-            total_duration += duration
-        except Exception as e:
-            logger.info(f"Error processing {filename}: {e}")
+                clips.append(clip)
+                total_duration += duration
+            except Exception as e:
+                logger.info(f"Error processing {filename}: {e}")
 
     if not clips:
         logger.info('No valid clips to process.')
@@ -40,14 +47,8 @@ def create_instagram_reel(config_file, media_dir, output_path, preview=False):
     if preview:
         video_postprocessing.preview(clips)
     else:
-        video_postprocessing.final_render(output_path, clips)
+        video_postprocessing.final_render(output_path, clips, audio_path=audio_path, audio_start=audio_start)
     video_preprocessing.cleanup_temp_files()
-
-    # TODO:
-    # handle audio
-    # if audio_path:
-    #     audio = AudioFileClip(audio_path).subclip(0, final_clip.duration)
-    #     final_clip = final_clip.set_audio(audio)
 
 
 def arg_paser():
