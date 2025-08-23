@@ -5,7 +5,7 @@ from enum import StrEnum
 from moviepy.video.io.VideoFileClip import VideoFileClip
 
 
-class VisionDataTypeEnum(StrEnum):
+class DataTypeEnum(StrEnum):
     VIDEO = 'video'
     PHOTO = 'photo'
     AUDIO = 'audio'
@@ -24,7 +24,7 @@ class MediaClip:
     start: float
     end: float
     transition: TransitionTypeEnum
-    type: VisionDataTypeEnum  # 'video', 'image', 'audio'
+    type: DataTypeEnum  # 'video', 'image', 'audio'
     video_resampling: int
 
 

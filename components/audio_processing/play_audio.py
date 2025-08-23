@@ -31,9 +31,7 @@ class AudioLooper(QObject):
         self.running = True
 
         self.player.play()
-        QTimer.singleShot(
-            100, lambda: self.player.set_time(int(self.start_time * 1000))
-        )
+        QTimer.singleShot(100, lambda: self.player.set_time(int(self.start_time * 1000)))
         self._loop_timer.start()
 
     def _check_loop(self):

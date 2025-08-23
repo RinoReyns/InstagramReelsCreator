@@ -18,7 +18,6 @@ from utils.data_structures import Segment
 from components.video_processing.fast_video_concat import FFmpegConcat
 
 
-
 class VideoPlayerUI(QWidget):
     def __init__(self):
         super().__init__()
@@ -124,9 +123,7 @@ class VideoPlayerUI(QWidget):
         return duration_ms / 1000.0  # seconds
 
     def open_video_file(self):
-        file_path, _ = QFileDialog.getOpenFileName(
-            self, 'Open Video File', '', 'Video Files (*.mp4 *.mov *.avi *.mkv)'
-        )
+        file_path, _ = QFileDialog.getOpenFileName(self, 'Open Video File', '', 'Video Files (*.mp4 *.mov *.avi *.mkv)')
         if file_path:
             self.segments = [
                 {
@@ -137,17 +134,23 @@ class VideoPlayerUI(QWidget):
             ]
             self.total_duration = sum(s['end'] - s['start'] for s in self.segments)
 
-    def fast_preview(self, video_segments: None | list[Segment] = None, output_folder: str = '',
-                     audio_segments: None | list[Segment] = None):
+    def fast_preview(
+        self,
+        video_segments: None | list[Segment] = None,
+        output_folder: str = '',
+        audio_segments: None | list[Segment] = None,
+    ):
         if video_segments is not None and len(video_segments) != 0:
             os.makedirs(output_folder, exist_ok=True)
             output_file = os.path.join(output_folder, 'fast_preview.mkv')
-            _, self.total_duration  = FFmpegConcat().concat_segments(video_segments, output_file, audio_segments)
-            self.segments = [{
-                        'path': output_file,
-                        'start': 0.0,
-                        'end': self.total_duration,
-                    }]
+            _, self.total_duration = FFmpegConcat().concat_segments(video_segments, output_file, audio_segments)
+            self.segments = [
+                {
+                    'path': output_file,
+                    'start': 0.0,
+                    'end': self.total_duration,
+                }
+            ]
             self.stop()
             self.play()
 
@@ -176,15 +179,11 @@ class VideoPlayerUI(QWidget):
         if current_time >= segment['end']:
             self._play_next_segment()
         else:
-            global_time = self._get_global_time(
-                self.current_segment_index, current_time
-            )
+            global_time = self._get_global_time(self.current_segment_index, current_time)
             self.slider.setValue(int(global_time / self.total_duration * 1000))
 
             # Update time label
-            self.time_label.setText(
-                f"{self._format_time(global_time)} / {self._format_time(self.total_duration)}"
-            )
+            self.time_label.setText(f"{self._format_time(global_time)} / {self._format_time(self.total_duration)}")
 
     def _play_next_segment(self):
         if self.current_segment_index + 1 < len(self.segments):
@@ -217,9 +216,7 @@ class VideoPlayerUI(QWidget):
     def _play_segment_from(self, time_in_segment):
         self._load_segment(self.current_segment_index)
         self.player.play()
-        QTimer.singleShot(
-            300, lambda: self.player.set_time(int(time_in_segment * 1000))
-        )
+        QTimer.singleShot(300, lambda: self.player.set_time(int(time_in_segment * 1000)))
 
     def seek(self, slider_value):
         global_time = (slider_value / 1000.0) * self.total_duration

@@ -1,5 +1,7 @@
 import logging
 import os
+
+from moviepy import AudioFileClip
 from tqdm import tqdm
 import threading
 
@@ -57,9 +59,7 @@ class VideoPostProcessing:
             [background, resized_clip.with_position('center')],
             size=target_size,
         )
-        clip.clip = composed.with_duration(clip.clip.duration).with_audio(
-            resized_clip.audio
-        )
+        clip.clip = composed.with_duration(clip.clip.duration).with_audio(resized_clip.audio)
         return clip
 
     def apply_transitions(self, clips: list[LoadedVideo]) -> VideoFileClip:
@@ -100,10 +100,13 @@ class VideoPostProcessing:
         for thread in tqdm(threads, desc='Rendering previews'):
             thread.join()
 
-    def final_render(self, output_path: str, clips: list[LoadedVideo]):
+    def final_render(self, output_path: str, clips: list[LoadedVideo], audio_path: str = '', audio_start=0):
         resized_clips_list = [self.resize_and_center(c) for c in clips]
         final_clip = self.apply_transitions(resized_clips_list)
         # final_clip = concatenate_videoclips(final_clips, method="compose")
+        if audio_path:
+            audio_clip = AudioFileClip(audio_path).subclipped(audio_start, audio_start + final_clip.duration)
+            final_clip = final_clip.with_audio(audio_clip)
         final_clip.write_videofile(
             output_path,
             codec=get_codec(),

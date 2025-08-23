@@ -43,14 +43,10 @@ class ResizeHandle(QGraphicsRectItem):
                 # Minimum width check
                 if new_width < 10:
                     new_width = 10
-                    new_x = self.parent_block.x() + (
-                        self.parent_block.rect().width() - 10
-                    )
+                    new_x = self.parent_block.x() + (self.parent_block.rect().width() - 10)
 
                 # Apply new size and position
-                self.parent_block.setRect(
-                    0, 0, new_width, self.parent_block.rect().height()
-                )
+                self.parent_block.setRect(0, 0, new_width, self.parent_block.rect().height())
                 self.parent_block.setPos(QPointF(new_x, self.parent_block.y()))
 
             elif self.position == 'right':
@@ -66,9 +62,7 @@ class ResizeHandle(QGraphicsRectItem):
                 if new_width < 10:
                     new_width = 10
 
-                self.parent_block.setRect(
-                    0, 0, new_width, self.parent_block.rect().height()
-                )
+                self.parent_block.setRect(0, 0, new_width, self.parent_block.rect().height())
 
             self.parent_block.handler_move_update(self.position)
             # Prevent handle from moving independently
@@ -92,16 +86,12 @@ class ResizeHandle(QGraphicsRectItem):
             # Clamp new_x and new_width properly
             if new_x < self.parent_block.MIN_X:
                 new_x = self.parent_block.MIN_X
-                new_width = self.parent_block.rect().width() + (
-                    self.parent_block.x() - new_x
-                )
+                new_width = self.parent_block.rect().width() + (self.parent_block.x() - new_x)
             if new_width < 10:
                 new_width = 10
                 new_x = self.parent_block.x() + (self.parent_block.rect().width() - 10)
 
-            self.parent_block.setRect(
-                0, 0, new_width, self.parent_block.rect().height()
-            )
+            self.parent_block.setRect(0, 0, new_width, self.parent_block.rect().height())
             self.parent_block.setPos(QPointF(new_x, self.parent_block.y()))
 
         elif self.position == 'right':
@@ -113,9 +103,7 @@ class ResizeHandle(QGraphicsRectItem):
             if new_width < 10:
                 new_width = 10
 
-            self.parent_block.setRect(
-                0, 0, new_width, self.parent_block.rect().height()
-            )
+            self.parent_block.setRect(0, 0, new_width, self.parent_block.rect().height())
 
         self.parent_block.handler_move_update(self.position, delta)
         event.accept()

@@ -3,20 +3,23 @@ import os
 
 from PyQt5.QtCore import QThread, pyqtSignal
 
+
 def download_audio_as_wav(url, output_dir, progress_callback=None):
     os.makedirs(output_dir, exist_ok=True)
 
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': os.path.join(output_dir, '%(title)s.%(ext)s'),
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'wav',
-        }],
+        'postprocessors': [
+            {
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'wav',
+            }
+        ],
         'prefer_ffmpeg': True,
         'keepvideo': True,
         'quiet': False,
-        'progress_hooks': [progress_callback] if progress_callback else []
+        'progress_hooks': [progress_callback] if progress_callback else [],
     }
 
     def hook(d):
