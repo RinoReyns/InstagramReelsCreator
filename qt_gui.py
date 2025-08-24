@@ -30,6 +30,7 @@ from utils.json_handler import media_clips_to_json, pars_config
 from utils.data_structures import DataTypeEnum, FILE_NAME, TIMELINE_START, TIMELINE_END, MediaClip, INIT_AUDIO_LENGTH_S
 
 from components.gui_components.qt_waveform_item import WaveformItem
+from components.gui_components.qt_vertical_scroling_area import VerticalScrollArea
 from utils.data_structures import PIXELS_PER_SEC, MAX_VIDEO_DURATION, TransitionTypeEnum
 from main import create_instagram_reel, logger
 
@@ -54,7 +55,12 @@ class VideoTimelineApp(QWidget):
         self.video_frame = VideoPlayerUI()
         self.layout.addWidget(self.video_frame)
 
-        # Timeline view
+        self.scroll = VerticalScrollArea()
+
+        # TODO:
+        # add text timeline
+
+        # Video Timeline view
         self.render_preview_btn = QPushButton('Render Preview')
         self.fast_preview_btn = QPushButton('Fast Preview')
         self.load_config_btn = QPushButton('Load Timeline Config')
@@ -68,6 +74,7 @@ class VideoTimelineApp(QWidget):
         self.timelineView.setScene(self.timelineScene)
         self.timelineView.setFixedHeight(300)
 
+        self.scroll.addWidget(QLabel('Video Timeline:'))
         timeline_view_controls_layout = QHBoxLayout()
         timeline_view_work_dir_layout = QHBoxLayout()
         timeline_view_controls_layout.addWidget(self.load_config_btn)
@@ -77,9 +84,9 @@ class VideoTimelineApp(QWidget):
         timeline_view_controls_layout.addWidget(self.final_render_btn)
         timeline_view_work_dir_layout.addWidget(self.work_dir_btn)
         timeline_view_work_dir_layout.addWidget(self.work_dir_box)
-        self.layout.addLayout(timeline_view_controls_layout)
-        self.layout.addLayout(timeline_view_work_dir_layout)
-        self.layout.addWidget(self.timelineView)
+        self.scroll.addLayout(timeline_view_controls_layout)
+        self.scroll.addLayout(timeline_view_work_dir_layout)
+        self.scroll.addWidget(self.timelineView)
         self.draw_video_time_grid(90)
         self.blocks_configs = {}
 
@@ -103,23 +110,26 @@ class VideoTimelineApp(QWidget):
         self.audioTimelineScene = QGraphicsScene()
         self.audioTimelineView.setScene(self.audioTimelineScene)
         self.audioTimelineView.setFixedHeight(220)
-        self.layout.addWidget(QLabel('Audio Timeline:'))
+        self.scroll.addWidget(QLabel('Audio Timeline:'))
         audio_controls_layout = QHBoxLayout()
         audio_download_controls_layout = QHBoxLayout()
         audio_controls_layout.addWidget(self.loadAudioBtn)
         audio_controls_layout.addWidget(self.playAudioBtn)
         audio_controls_layout.addWidget(self.pauseAudioBtn)
         audio_controls_layout.addWidget(self.stopAudioBtn)
-        self.layout.addLayout(audio_controls_layout)
+        self.scroll.addLayout(audio_controls_layout)
         audio_download_controls_layout.addWidget(self.downloadAudioBtn)
         audio_download_controls_layout.addWidget(self.audio_url_box)
 
-        self.layout.addLayout(audio_download_controls_layout)
-        self.layout.addWidget(self.audioTimelineView)
+        self.scroll.addLayout(audio_download_controls_layout)
+        self.scroll.addWidget(self.audioTimelineView)
+        self.layout.addWidget(self.scroll)
         self.draw_audio_time_grid(MAX_VIDEO_DURATION, self.AUDIO_SELECTOR_HEIGHT)
         self.loadAudioBtn.clicked.connect(self.load_audio_window)
         self.downloadAudioBtn.clicked.connect(self.download_audio)
         self.audio_thread = None
+
+        self.scroll.add_stretch()
 
     def load_audio_window(self):
         audio_path, _ = QFileDialog.getOpenFileName(self, 'Open Audio File', '', 'Audio Files (*.wav *.mp3)')
