@@ -1,9 +1,9 @@
-from moviepy import concatenate_videoclips
-from utils.data_structures import TransitionTypeEnum
-from moviepy import ImageSequenceClip
-import numpy as np
 import cv2
+import numpy as np
+from moviepy import ImageSequenceClip, concatenate_videoclips
 from tqdm import tqdm
+
+from utils.data_structures import TransitionTypeEnum
 
 
 class VideoTransitions:
@@ -121,12 +121,12 @@ class VideoTransitions:
         # Pre-transition frames from clip1
         for _ in tqdm(
             range(int(clip1.duration * fps) - transition_frames),
-            desc='Pre-transition in spin transition',
+            desc="Pre-transition in spin transition",
         ):
             output_frames.append(next(frames1_gen))
 
         # Transition frames
-        for i in tqdm(range(transition_frames), desc='Generating spin transition'):
+        for i in tqdm(range(transition_frames), desc="Generating spin transition"):
             progress = i / transition_frames
 
             frame1 = next(frames1_gen)
@@ -176,7 +176,7 @@ class VideoTransitions:
             padded = cv2.copyMakeBorder(resized, pad_y1, pad_y2, pad_x1, pad_x2, cv2.BORDER_CONSTANT, value=0)
             return padded
 
-    def zoom_transition(self, clip1, clip2, duration=0.1, fps=30, direction='in_out'):
+    def zoom_transition(self, clip1, clip2, duration=0.1, fps=30, direction="in_out"):
         transition_frames = int(duration * fps)
 
         frames1_gen = (clip1.get_frame(t) for t in np.arange(0, clip1.duration, 1 / fps))
@@ -188,22 +188,22 @@ class VideoTransitions:
         for _ in range(total_frames1 - transition_frames):
             output_frames.append(next(frames1_gen))
 
-        for i in tqdm(range(transition_frames), desc='Generating zoom transition'):
+        for i in tqdm(range(transition_frames), desc="Generating zoom transition"):
             progress = i / transition_frames
             frame1 = next(frames1_gen)
             frame2 = next(frames2_gen)
 
             # Determine zoom scale and alpha based on direction
-            if direction == 'in_out':
+            if direction == "in_out":
                 scale1 = 1.2 - 0.2 * progress  # zoom out
                 scale2 = 0.8 + 0.2 * progress  # zoom in
-            elif direction == 'out_in':
+            elif direction == "out_in":
                 scale1 = 0.8 + 0.2 * progress  # zoom in
                 scale2 = 1.2 - 0.2 * progress  # zoom out
-            elif direction == 'in':
+            elif direction == "in":
                 scale1 = 1.0 + 0.2 * progress
                 scale2 = 1.0 + 0.2 * progress
-            elif direction == 'out':
+            elif direction == "out":
                 scale1 = 1.2 - 0.2 * progress
                 scale2 = 1.2 - 0.2 * progress
             else:
@@ -228,8 +228,8 @@ class VideoTransitions:
         # Only apply fade effects and concatenate — more efficient than composite
         clip1_fade = clip1.fadeout(duration)
         clip2_fade = clip2.fadein(duration)
-        return concatenate_videoclips([clip1_fade, clip2_fade], method='compose')
+        return concatenate_videoclips([clip1_fade, clip2_fade], method="compose")
 
     @staticmethod
     def no_transition(clip1, clip2, duration=0):
-        return concatenate_videoclips([clip1, clip2], method='compose')
+        return concatenate_videoclips([clip1, clip2], method="compose")

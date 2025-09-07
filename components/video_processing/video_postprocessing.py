@@ -1,23 +1,23 @@
 import logging
 import os
-
-from moviepy import AudioFileClip
-from tqdm import tqdm
 import threading
 
-from components.video_processing.video_processing_utils import get_codec
-from utils.data_structures import LoadedVideo
-from moviepy.video.VideoClip import ColorClip
+from moviepy import AudioFileClip
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 from moviepy.video.io.VideoFileClip import VideoFileClip
-from components.video_processing.video_transitions import VideoTransitions
+from moviepy.video.VideoClip import ColorClip
+from tqdm import tqdm
 
-logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(message)s')
+from components.video_processing.video_processing_utils import get_codec
+from components.video_processing.video_transitions import VideoTransitions
+from utils.data_structures import LoadedVideo
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(message)s")
 
 
 class VideoPostProcessing:
     OUTPUT_FPS = 30
-    PREVIEW_FOLDER = 'preview'
+    PREVIEW_FOLDER = "preview"
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ class VideoPostProcessing:
 
         # Overlay the resized clip in the center of the background
         composed = CompositeVideoClip(
-            [background, resized_clip.with_position('center')],
+            [background, resized_clip.with_position("center")],
             size=target_size,
         )
         clip.clip = composed.with_duration(clip.clip.duration).with_audio(resized_clip.audio)
@@ -75,7 +75,7 @@ class VideoPostProcessing:
         clip.write_videofile(
             output_file,
             codec=codec,
-            audio_codec='aac',
+            audio_codec="aac",
             threads=max(1, os.cpu_count() - 2),
             fps=fps,
             logger=None,  # bar
@@ -97,10 +97,10 @@ class VideoPostProcessing:
             threads.append(thread)
 
         # Optional: Wait for all threads to finish
-        for thread in tqdm(threads, desc='Rendering previews'):
+        for thread in tqdm(threads, desc="Rendering previews"):
             thread.join()
 
-    def final_render(self, output_path: str, clips: list[LoadedVideo], audio_path: str = '', audio_start=0):
+    def final_render(self, output_path: str, clips: list[LoadedVideo], audio_path: str = "", audio_start=0):
         resized_clips_list = [self.resize_and_center(c) for c in clips]
         final_clip = self.apply_transitions(resized_clips_list)
         # final_clip = concatenate_videoclips(final_clips, method="compose")
@@ -110,7 +110,7 @@ class VideoPostProcessing:
         final_clip.write_videofile(
             output_path,
             codec=get_codec(),
-            audio_codec='aac',
+            audio_codec="aac",
             threads=os.cpu_count() - 2,
             fps=self.OUTPUT_FPS,
         )

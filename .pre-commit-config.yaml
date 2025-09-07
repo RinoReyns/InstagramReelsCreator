@@ -10,8 +10,6 @@ repos:
         language_version: python3.12
     -   id: debug-statements
         language_version: python3.12
-    -   id: double-quote-string-fixer
-        language_version: python3.12
     -   id: name-tests-test
         language_version: python3.12
     -   id: requirements-txt-fixer
@@ -26,6 +24,12 @@ repos:
       additional_dependencies: [ 'eslint', 'eslint-plugin-html' ]
       # (no language_version here, it's node-based, not Python)
 
+- repo: https://github.com/pycqa/isort
+  rev: 5.12.0
+  hooks:
+    - id: isort
+      args: ["--profile", "black"]
+
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.11.13
   hooks:
@@ -33,3 +37,11 @@ repos:
       types_or: [ python, pyi ]
       args: [ --fix, "--target-version", "py311" ]
       language_version: python3.12
+
+- repo: https://github.com/psf/black
+  rev: 23.7.0
+  hooks:
+    - id: black
+      args: ["--line-length=120"]
+      pass_filenames: true
+      stages: [ pre-commit ]

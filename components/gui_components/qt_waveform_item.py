@@ -1,6 +1,6 @@
 import numpy as np
 import soundfile as sf
-from PyQt5.QtCore import QRectF, Qt, QPointF
+from PyQt5.QtCore import QPointF, QRectF, Qt
 from PyQt5.QtGui import QPen
 from PyQt5.QtWidgets import QGraphicsItem
 

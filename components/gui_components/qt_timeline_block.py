@@ -1,26 +1,23 @@
-from PyQt5.QtCore import Qt, QPointF
-from PyQt5.QtGui import QColor, QBrush
+import os
+
+from PyQt5.QtCore import QPointF, Qt
+from PyQt5.QtGui import QBrush, QColor
 from PyQt5.QtWidgets import QGraphicsRectItem, QGraphicsTextItem
 
 from components.gui_components.qt_resize_handle import ResizeHandle
 from utils.data_structures import (
-    PIXELS_PER_SEC,
-    DataTypeEnum,
     FILE_NAME,
-    TIMELINE_START,
+    PIXELS_PER_SEC,
     TIMELINE_END,
+    TIMELINE_START,
+    DataTypeEnum,
 )
-import os
 
 
 class AdjustableBlock(QGraphicsRectItem):
     MIN_X = 0
     MAX_X = MIN_X + 90 * PIXELS_PER_SEC  # 90 seconds * 50 pixels/sec
-    LABEL = (
-        'File name:\n  {video_file}\n'
-        'Timeline Pos:\n  start:{t_start}\n  end:{t_end} '
-        '\nFile Time:\n  start:{start}\n  end:{end}'
-    )
+    LABEL = "{file}\n" "Timeline Pos:\n  start:{t_start}\n  end:{t_end} " "\nFile Time:\n  start:{start}\n  end:{end}"
     BIAS_IN_S = 0.2
 
     def __init__(
@@ -30,7 +27,7 @@ class AdjustableBlock(QGraphicsRectItem):
         width,
         height,
         *,
-        label='',
+        label="",
         color=QColor(100, 150, 200),
         block_config=None,
     ):
@@ -50,8 +47,8 @@ class AdjustableBlock(QGraphicsRectItem):
         self.text_label.setDefaultTextColor(Qt.white)
         self.text_label.setPos(5, (height - self.text_label.boundingRect().height()) / 2)
 
-        self.left_handle = ResizeHandle(self, 'left')
-        self.right_handle = ResizeHandle(self, 'right')
+        self.left_handle = ResizeHandle(self, "left")
+        self.right_handle = ResizeHandle(self, "right")
         self._moving = False
         self._set_label()
         self.common_block_update()
@@ -60,38 +57,39 @@ class AdjustableBlock(QGraphicsRectItem):
 
     def _set_label(self):
         if self.block_config is not None:
-            if self.block_config['type'] == DataTypeEnum.AUDIO:
-                self.text_label.setPlainText(
-                    f"{self.LABEL.split('\nFile Time:')[0].format(
-                        video_file=os.path.basename(self.block_config[FILE_NAME]),
-                        t_start=self.block_config[TIMELINE_START],
-                        t_end=self.block_config[TIMELINE_END],
-                    )}\n Length: {round(self.block_config[TIMELINE_END] - self.block_config[TIMELINE_START], 2)}"
+            if self.block_config["type"] in [DataTypeEnum.AUDIO, DataTypeEnum.TEXT]:
+                base_label = f"{self.LABEL.split('\nFile Time:')[0]}"
+                label = base_label.format(
+                    file=os.path.basename(self.block_config[FILE_NAME]),
+                    t_start=self.block_config[TIMELINE_START],
+                    t_end=self.block_config[TIMELINE_END],
                 )
+                label = f"{label} \n Length: {round(self.block_config[TIMELINE_END] - self.block_config[TIMELINE_START], 2)}"
+                self.text_label.setPlainText(label)
 
             else:
                 self.text_label.setPlainText(
                     self.LABEL.format(
-                        video_file=self.block_config[FILE_NAME],
+                        file=self.block_config[FILE_NAME],
                         t_start=self.block_config[TIMELINE_START],
                         t_end=self.block_config[TIMELINE_END],
-                        start=self.block_config['start'],
-                        end=self.block_config['end'],
+                        start=self.block_config["start"],
+                        end=self.block_config["end"],
                     )
                 )
 
-    def handler_move_update(self, handler_update='', delta_px=0):
+    def handler_move_update(self, handler_update="", delta_px=0):
         self.common_block_update()
         delta_in_s = delta_px / PIXELS_PER_SEC
 
-        if handler_update == 'left':
-            self.block_config['start'] = round(self.block_config['start'] + delta_in_s, 2)
+        if handler_update == "left":
+            self.block_config["start"] = round(self.block_config["start"] + delta_in_s, 2)
             self.block_config[TIMELINE_START] = round(self.block_config[TIMELINE_START] + delta_in_s, 2)
         else:
-            self.block_config['end'] = round(self.block_config['end'] + delta_in_s, 2)
+            self.block_config["end"] = round(self.block_config["end"] + delta_in_s, 2)
             self.block_config[TIMELINE_END] = round(self.block_config[TIMELINE_END] + delta_in_s, 2)
 
-        self.block_config['duration'] = self.block_config['end'] - self.block_config['start']
+        self.block_config["duration"] = self.block_config["end"] - self.block_config["start"]
         self._set_label()
 
     def common_block_update(self):
@@ -133,7 +131,7 @@ class AdjustableBlock(QGraphicsRectItem):
 
                 if self.block_config[TIMELINE_START] < 0:
                     self.block_config[TIMELINE_START] = 0.0
-                    self.block_config[TIMELINE_END] = round(self.block_config['duration'], 2)
+                    self.block_config[TIMELINE_END] = round(self.block_config["duration"], 2)
                 self._set_label()
             self.common_block_update()
         super().mouseMoveEvent(event)
