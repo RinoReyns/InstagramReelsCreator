@@ -17,7 +17,7 @@ class AdjustableBlock(QGraphicsRectItem):
     MIN_X = 0
     MAX_X = MIN_X + 90 * PIXELS_PER_SEC  # 90 seconds * 50 pixels/sec
     LABEL = (
-        'File name:\n  {video_file}\n'
+        '{video_file}\n'
         'Timeline Pos:\n  start:{t_start}\n  end:{t_end} '
         '\nFile Time:\n  start:{start}\n  end:{end}'
     )

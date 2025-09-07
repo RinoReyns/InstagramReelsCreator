@@ -26,8 +26,8 @@ from components.gui_components.qt_timeline_block import (
 )
 from components.audio_processing.play_audio import AudioThread
 from components.video_processing.play_video import VideoPlayerUI
-from utils.json_handler import media_clips_to_json, pars_config
-from utils.data_structures import DataTypeEnum, FILE_NAME, TIMELINE_START, TIMELINE_END, MediaClip, INIT_AUDIO_LENGTH_S
+from utils.json_handler import media_clips_to_json, pars_config, save_json_config
+from utils.data_structures import DataTypeEnum, FILE_NAME, TIMELINE_START, TIMELINE_END, MediaClip, INIT_AUDIO_LENGTH_S, TimelinesTypeEnum
 
 from components.gui_components.qt_waveform_item import WaveformItem
 from components.gui_components.qt_vertical_scroling_area import VerticalScrollArea
@@ -39,7 +39,7 @@ from utils.data_structures import Segment
 from pathlib import Path
 
 
-class VideoTimelineApp(QWidget):
+class InstagramReelCreatorGui(QWidget):
     DOWNLOAD_DIR = 'download'
     AUDIO_SELECTOR_HEIGHT = 145
 
@@ -59,8 +59,7 @@ class VideoTimelineApp(QWidget):
 
         # TODO:
         # add text timeline
-
-        # Video Timeline view
+        # ======================= Video Timeline View ===========================
         self.render_preview_btn = QPushButton('Render Preview')
         self.fast_preview_btn = QPushButton('Fast Preview')
         self.load_config_btn = QPushButton('Load Timeline Config')
@@ -92,6 +91,7 @@ class VideoTimelineApp(QWidget):
 
         # Connect buttons
         self.load_config_btn.clicked.connect(self.load_config)
+        self.save_config_btn.clicked.connect(self.save_config)
         self.fast_preview_btn.clicked.connect(self.fast_preview)
         self.work_dir_btn.clicked.connect(self.get_work_dir)
         self.render_preview_btn.clicked.connect(self.render_preview)
@@ -275,6 +275,25 @@ class VideoTimelineApp(QWidget):
                 self.audio_thread.finished.connect(self.audio_thread.stop_loop)
                 self.audio_thread.start_loop(max(params[TIMELINE_START], 0), params[TIMELINE_END])
 
+    def save_config(self):
+        self.update_blocks_configs()
+        config_path, _ = QFileDialog.getSaveFileName(self, 'Save Config File', '', 'JSON Files (*.json)')
+        config =  {timeline.value: {} for timeline in TimelinesTypeEnum}
+        for name, element in self.blocks_configs.items():
+            block_type = element.type
+
+            if block_type == DataTypeEnum.AUDIO:
+                timeline_type = TimelinesTypeEnum.AUDIO_TIMELINE
+            elif block_type in [DataTypeEnum.VIDEO, DataTypeEnum.PHOTO]:
+                timeline_type = TimelinesTypeEnum.VIDEO_TIMELINE
+            elif block_type == DataTypeEnum.TEXT:
+                timeline_type = TimelinesTypeEnum.TEXT_TIMELINE
+            else:
+                raise ValueError(f"{block_type} not supported")
+
+            config[timeline_type][name] =  element
+        save_json_config(config, config_path)
+
     def load_config(self):
         config_path, _ = QFileDialog.getOpenFileName(self, 'Open Config File', '', 'JSON Files (*.json)')
         if not config_path:
@@ -288,13 +307,27 @@ class VideoTimelineApp(QWidget):
 
         self.video_clips = {}
         self.timelineScene.clear()
+        self._load_audio_timeline(config_data)
+        self._load_video_timeline(config_data, config_dir)
+        # TODO:
+        # add load text timeline
+
+    def _load_audio_timeline(self, config):
+        if not config.get(TimelinesTypeEnum.AUDIO_TIMELINE.value, None):
+            logger.warning(f"Empty config for {TimelinesTypeEnum.AUDIO_TIMELINE.value}")
+            return
+
+        for file, settings in config[TimelinesTypeEnum.AUDIO_TIMELINE.value].items():
+            self.load_external_audio(file, settings.start, settings.end)
+
+
+    def _load_video_timeline(self, config_data, config_dir):
+        if not config_data.get(TimelinesTypeEnum.VIDEO_TIMELINE.value, None):
+            logger.warning(f"Empty config for {TimelinesTypeEnum.VIDEO_TIMELINE.value}")
+            return
         start = 0
         end = 0
-        for file, settings in config_data.items():
-            if settings.type == DataTypeEnum.AUDIO:
-                self.load_external_audio(file, settings.start, settings.end)
-                continue
-
+        for file, settings in config_data[TimelinesTypeEnum.VIDEO_TIMELINE.value].items():
             try:
                 duration = max(0, min(settings.end, MAX_VIDEO_DURATION)) - max(
                     0, min(settings.start, MAX_VIDEO_DURATION)
@@ -311,13 +344,13 @@ class VideoTimelineApp(QWidget):
                 self.blocks_configs[file] = settings
                 block_config_temp = media_clips_to_json({file: settings})
                 block_config = {
-                    FILE_NAME: file,
-                    TIMELINE_START: start,
-                    TIMELINE_END: end,
-                    'duration': duration,
-                    # add max duration of video to disable expanding for more
-                    'type': DataTypeEnum.VIDEO,
-                } | block_config_temp[file]
+                                   FILE_NAME: file,
+                                   TIMELINE_START: start,
+                                   TIMELINE_END: end,
+                                   'duration': duration,
+                                   # add max duration of video to disable expanding for more
+                                   'type': DataTypeEnum.VIDEO,
+                               } | block_config_temp[file]
 
                 block = AdjustableBlock(x, 10, width, 200, label='', block_config=block_config)
                 self.timelineScene.addItem(block)
@@ -383,6 +416,6 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     font = QFont('Arial', 9)  # (family, point size)
     app.setFont(font)  # apply globally
-    window = VideoTimelineApp()
+    window = InstagramReelCreatorGui()
     window.show()
     sys.exit(app.exec_())

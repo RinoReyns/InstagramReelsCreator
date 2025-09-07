@@ -9,6 +9,7 @@ class DataTypeEnum(StrEnum):
     VIDEO = 'video'
     PHOTO = 'photo'
     AUDIO = 'audio'
+    TEXT = 'text'
 
 
 class TransitionTypeEnum(StrEnum):
@@ -18,6 +19,19 @@ class TransitionTypeEnum(StrEnum):
     FADE = 'fade'
     SPIN = 'spin'
 
+
+class TimelinesTypeEnum(StrEnum):
+    AUDIO_TIMELINE = 'audio_timeline'
+    VIDEO_TIMELINE = 'video_timeline'
+    TEXT_TIMELINE = 'text_timeline'
+
+    @classmethod
+    def has_value(cls, value: str) -> bool:
+        return value in {c.value for c in cls}
+
+    @classmethod
+    def has_name(cls, name: str) -> bool:
+        return name.upper() in cls.__members__
 
 @dataclass
 class MediaClip:

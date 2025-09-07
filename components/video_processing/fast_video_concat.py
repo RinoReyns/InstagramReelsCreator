@@ -87,15 +87,15 @@ class FFmpegConcat:
                 futures |= {executor.submit(self.process_audio_segment, tmp_dir, i, seg): i for i, seg in
                            enumerate(audio_segments, start=len(futures))}
             for future in as_completed(futures):
-                i, tmp_file, seg_duration, data_type = future.result()
-                if tmp_file is None:
+                i, tmp_data, seg_duration, data_type = future.result()
+                if tmp_data is None:
                     self.logger.error(f"Trimming failed on segment {i}")
                     return False, 0.0
                 if data_type == DataTypeEnum.VIDEO:
-                    tmp_video_files[i] = tmp_file
+                    tmp_video_files[i] = tmp_data
                     duration += seg_duration
                 elif data_type == DataTypeEnum.AUDIO:
-                    tmp_audio_files[i - len(tmp_video_files)] = tmp_file
+                    tmp_audio_files[i - len(tmp_video_files)] = tmp_data
 
         self.logger.info(f"All audio and video segments trimmed. Total duration of clip: {duration:.2f}s")
 

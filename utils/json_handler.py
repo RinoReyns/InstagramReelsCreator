@@ -6,7 +6,7 @@ import logging
 import os
 from dataclasses import asdict, fields
 
-from utils.data_structures import MediaClip, DataTypeEnum, TransitionTypeEnum
+from utils.data_structures import MediaClip, DataTypeEnum, TransitionTypeEnum, TimelinesTypeEnum
 
 # Configure logger
 logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(message)s')
@@ -62,9 +62,16 @@ def create_config_from_folder(folder_path):
                 logger.warning(f"Skipped unsupported file type: {filename}")
     return config
 
+def save_json_config(config, config_path):
+    json_file = {}
+    for timeline in config:
+        json_file[timeline] = media_clips_to_json(config[timeline])
+
+    with open(config_path, 'w') as f:
+        json.dump(json_file, f, indent=4)
 
 def media_clips_to_json(data: dict[str, MediaClip], filepath: str = ''):
-    json_ready = {
+    json_file = {
         key: {
             **asdict(clip),
             'type': clip.type.value,  # Serialize Enum to string
@@ -74,9 +81,9 @@ def media_clips_to_json(data: dict[str, MediaClip], filepath: str = ''):
 
     if filepath != '':
         with open(filepath, 'w') as f:
-            json.dump(json_ready, f, indent=4)
+            json.dump(json_file, f, indent=4)
     else:
-        return json_ready
+        return json_file
 
 
 def load_json(filepath):
@@ -84,10 +91,9 @@ def load_json(filepath):
         raw_data = json.load(f)
     return raw_data
 
-
-def media_clips_from_json(filepath: str) -> dict[str, MediaClip]:
-    return {
-        key: MediaClip(
+def get_timeline_clips(media, config):
+    for key, value in media.items():
+        config[key] = MediaClip(
             start=value[fields(MediaClip)[0].name],
             end=value[fields(MediaClip)[1].name],
             transition=TransitionTypeEnum(value[fields(MediaClip)[2].name]),
@@ -95,9 +101,19 @@ def media_clips_from_json(filepath: str) -> dict[str, MediaClip]:
             type=DataTypeEnum(value[fields(MediaClip)[3].name]),
             video_resampling=value[fields(MediaClip)[4].name],
         )
-        for key, value in load_json(filepath).items()
-    }
+    return config
 
+def media_clips_from_json(filepath: str) -> dict[str, dict[str, MediaClip] ]:
+    config = {}
+    for timeline_name, media in load_json(filepath).items():
+        if not TimelinesTypeEnum.has_value(timeline_name):
+            logger.error(f"Unsupported timeline name: {timeline_name}")
+            raise ValueError(f"Unsupported timeline name: {timeline_name}")
+        config[timeline_name] = {}
+        if len(media) != 0:
+            config[timeline_name] = get_timeline_clips(media, config[timeline_name])
+
+    return config
 
 def json_template_generator():
     # Argument parser setup
