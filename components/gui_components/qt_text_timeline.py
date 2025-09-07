@@ -1,28 +1,8 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
-    QGraphicsScene,
-    QGraphicsTextItem,
-    QGraphicsView,
-    QHBoxLayout,
-    QWidget,
-)
-
-from utils.data_structures import PIXELS_PER_SEC
+from components.gui_components.qt_timeline_base import BaseTimelineWidget
+from utils.data_structures import TimelinesTypeEnum
 
 
-class TextTimelineWidget(QWidget):
+class TextTimelineWidget(BaseTimelineWidget):
     def __init__(self):
         super().__init__()
-        self.timelineView = QGraphicsView()
-        self.timelineScene = QGraphicsScene()
-        self.timelineView.setScene(self.timelineScene)
-        self.timelineView.setFixedHeight(300)
-        self.timeline_view_controls_layout = QHBoxLayout()
-
-    def draw_text_time_grid(self, max_seconds):
-        for second in range(max_seconds + 1):
-            x = 10 + second * PIXELS_PER_SEC
-            self.timelineScene.addLine(x, 0, x, 220, Qt.gray)
-            label = QGraphicsTextItem(f"{second}s")
-            label.setPos(x + 2, 220)
-            self.timelineScene.addItem(label)
+        self.timeline_type = TimelinesTypeEnum.TEXT_TIMELINE.value

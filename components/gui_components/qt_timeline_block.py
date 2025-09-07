@@ -17,9 +17,7 @@ from utils.data_structures import (
 class AdjustableBlock(QGraphicsRectItem):
     MIN_X = 0
     MAX_X = MIN_X + 90 * PIXELS_PER_SEC  # 90 seconds * 50 pixels/sec
-    LABEL = (
-        "{video_file}\n" "Timeline Pos:\n  start:{t_start}\n  end:{t_end} " "\nFile Time:\n  start:{start}\n  end:{end}"
-    )
+    LABEL = "{file}\n" "Timeline Pos:\n  start:{t_start}\n  end:{t_end} " "\nFile Time:\n  start:{start}\n  end:{end}"
     BIAS_IN_S = 0.2
 
     def __init__(
@@ -59,10 +57,10 @@ class AdjustableBlock(QGraphicsRectItem):
 
     def _set_label(self):
         if self.block_config is not None:
-            if self.block_config["type"] == DataTypeEnum.AUDIO:
+            if self.block_config["type"] in [DataTypeEnum.AUDIO, DataTypeEnum.TEXT]:
                 base_label = f"{self.LABEL.split('\nFile Time:')[0]}"
                 label = base_label.format(
-                    video_file=os.path.basename(self.block_config[FILE_NAME]),
+                    file=os.path.basename(self.block_config[FILE_NAME]),
                     t_start=self.block_config[TIMELINE_START],
                     t_end=self.block_config[TIMELINE_END],
                 )
@@ -72,7 +70,7 @@ class AdjustableBlock(QGraphicsRectItem):
             else:
                 self.text_label.setPlainText(
                     self.LABEL.format(
-                        video_file=self.block_config[FILE_NAME],
+                        file=self.block_config[FILE_NAME],
                         t_start=self.block_config[TIMELINE_START],
                         t_end=self.block_config[TIMELINE_END],
                         start=self.block_config["start"],

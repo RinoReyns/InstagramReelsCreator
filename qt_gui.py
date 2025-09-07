@@ -23,10 +23,7 @@ from PyQt5.QtWidgets import (
 from components.audio_processing.dowload_music import DownloadThread
 from components.audio_processing.play_audio import AudioThread
 from components.gui_components.qt_text_timeline import TextTimelineWidget
-from components.gui_components.qt_timeline_block import (
-    AdjustableBlock,
-    AudioAdjustableBlock,
-)
+from components.gui_components.qt_timeline_block import AudioAdjustableBlock
 from components.gui_components.qt_utils import get_header_text_label
 from components.gui_components.qt_vertical_scroling_area import VerticalScrollArea
 from components.gui_components.qt_video_timeline import VideoTimelineWidget
@@ -64,6 +61,8 @@ class InstagramReelCreatorGui(QWidget):
         # ===================== Video frame for VLC Video Player =======================
         self.video_frame = VideoPlayerUI()
         self.layout.addWidget(self.video_frame)
+        # TODO:
+        # add visualization of text
         # ===============================================================================
 
         # ================== Global Control Buttons =====================================
@@ -72,10 +71,19 @@ class InstagramReelCreatorGui(QWidget):
         self.load_config_btn.clicked.connect(self.load_config)
         self.save_config_btn.clicked.connect(self.save_config)
 
+        self.work_dir_btn = QPushButton("Select Work Dir")
+        self.work_dir_box = QLineEdit(self)
+
+        timeline_view_work_dir_layout = QHBoxLayout()
+        timeline_view_work_dir_layout.addWidget(self.work_dir_btn)
+        timeline_view_work_dir_layout.addWidget(self.work_dir_box)
+
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(self.load_config_btn)
         buttons_layout.addWidget(self.save_config_btn)
+        self.work_dir_btn.clicked.connect(self.get_work_dir)
         self.layout.addLayout(buttons_layout)
+        self.layout.addLayout(timeline_view_work_dir_layout)
         # ================================================================================
 
         self.scroll = VerticalScrollArea()
@@ -86,16 +94,15 @@ class InstagramReelCreatorGui(QWidget):
         self.text_timeline = TextTimelineWidget()
         self.scroll.addLayout(self.text_timeline.timeline_view_controls_layout)
         self.scroll.addWidget(self.text_timeline.timelineView)
-        self.text_timeline.draw_text_time_grid(MAX_VIDEO_DURATION)
+        self.text_timeline.draw_time_grid(MAX_VIDEO_DURATION)
         # ========================================================================
 
         # ======================= Video Timeline View ===========================
         self.scroll.addWidget(get_header_text_label("Video Timeline:"))
         self.video_timeline = VideoTimelineWidget()
         self.scroll.addLayout(self.video_timeline.timeline_view_controls_layout)
-        self.scroll.addLayout(self.video_timeline.timeline_view_work_dir_layout)
         self.scroll.addWidget(self.video_timeline.timelineView)
-        self.video_timeline.draw_video_time_grid(MAX_VIDEO_DURATION)
+        self.video_timeline.draw_time_grid(MAX_VIDEO_DURATION)
         self.video_timeline.fast_preview_btn.clicked.connect(self.fast_preview)
         self.video_timeline.render_preview_btn.clicked.connect(self.render_preview)
         self.video_timeline.final_render_btn.clicked.connect(self.final_render)
@@ -183,6 +190,16 @@ class InstagramReelCreatorGui(QWidget):
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()
 
+    def get_work_dir(self):
+        folder = QFileDialog.getExistingDirectory(
+            self,
+            "Select Folder",
+            "",
+            QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks,
+        )
+        if folder:
+            self.work_dir_box.setText(folder)
+
     def download_audio(self):
         if not self.audio_url_box.text():
             self.show_warning("Url to download is empty.")
@@ -217,13 +234,7 @@ class InstagramReelCreatorGui(QWidget):
         return None
 
     def update_blocks_configs(self):
-        for item in self.video_timeline.timelineView.items():
-            if isinstance(item, AdjustableBlock):
-                file_name = item.block_config[FILE_NAME]
-                start = item.block_config["start"]
-                end = item.block_config["end"]
-                self.blocks_configs[file_name].start = start
-                self.blocks_configs[file_name].end = end
+        self.blocks_configs = self.video_timeline.update_blocks_configs(self.blocks_configs)
 
         for item in self.audioTimelineScene.items():
             if isinstance(item, AudioAdjustableBlock):
@@ -245,10 +256,10 @@ class InstagramReelCreatorGui(QWidget):
         segments_video = []
         segments_audio = []
         for file, setting in self.blocks_configs.items():
-            if setting.type != DataTypeEnum.AUDIO:
+            if setting.type == [DataTypeEnum.VIDEO, DataTypeEnum.PHOTO]:
                 segments_video.append(
                     Segment(
-                        path=str(os.path.join(self.video_timeline.work_dir_box.text(), file)),
+                        path=str(os.path.join(self.work_dir_box.text(), file)),
                         start=setting.start,
                         end=setting.end,
                     )
@@ -256,11 +267,13 @@ class InstagramReelCreatorGui(QWidget):
             elif setting.type == DataTypeEnum.AUDIO:
                 segments_audio.append(
                     Segment(
-                        path=str(os.path.join(self.video_timeline.work_dir_box.text(), file)),
+                        path=str(os.path.join(self.work_dir_box.text(), file)),
                         start=setting.start,
                         end=setting.end,
                     )
                 )
+            elif setting.type == DataTypeEnum.TEXT:
+                pass
 
         return segments_video, segments_audio
 
@@ -306,17 +319,16 @@ class InstagramReelCreatorGui(QWidget):
         config_path, _ = QFileDialog.getOpenFileName(self, "Open Config File", "", "JSON Files (*.json)")
         if not config_path:
             return
-        if self.video_timeline.work_dir_box.text() == "":
+        if self.work_dir_box.text() == "":
             config_dir = os.path.dirname(config_path)
-            self.video_timeline.work_dir_box.setText(config_dir)
+            self.work_dir_box.setText(config_dir)
         else:
-            config_dir = self.video_timeline.work_dir_box.text()
+            config_dir = self.work_dir_box.text()
         config_data = pars_config(config_path)
 
+        self.blocks_configs |= self.text_timeline.load_timeline(config_data, config_dir)
+        self.blocks_configs |= self.video_timeline.load_timeline(config_data, config_dir)
         self._load_audio_timeline(config_data)
-        self.blocks_configs |= self.video_timeline.load_video_timeline(config_data, config_dir)
-        # TODO:
-        # add load text timeline
 
     def _load_audio_timeline(self, config):
         if not config.get(TimelinesTypeEnum.AUDIO_TIMELINE.value, None):
