@@ -1,9 +1,9 @@
-from moviepy import concatenate_videoclips
-from utils.data_structures import TransitionTypeEnum
-from moviepy import ImageSequenceClip
-import numpy as np
 import cv2
+import numpy as np
+from moviepy import ImageSequenceClip, concatenate_videoclips
 from tqdm import tqdm
+
+from utils.data_structures import TransitionTypeEnum
 
 
 class VideoTransitions:

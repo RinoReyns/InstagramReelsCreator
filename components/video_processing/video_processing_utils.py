@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import subprocess
 
 import cv2
 import numpy as np
 from PIL import Image
-import subprocess
 
 
 def format_photo_to_vertical(photo_path, reel_size=(1080, 1920)):

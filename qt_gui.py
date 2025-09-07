@@ -1,42 +1,51 @@
 import os
 import sys
 import threading
+from pathlib import Path
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
     QApplication,
-    QWidget,
-    QVBoxLayout,
-    QPushButton,
-    QLabel,
     QFileDialog,
-    QHBoxLayout,
-    QGraphicsView,
     QGraphicsScene,
     QGraphicsTextItem,
+    QGraphicsView,
+    QHBoxLayout,
+    QLabel,
     QLineEdit,
-    QProgressDialog,
     QMessageBox,
+    QProgressDialog,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
 )
 
+from components.audio_processing.dowload_music import DownloadThread
+from components.audio_processing.play_audio import AudioThread
 from components.gui_components.qt_timeline_block import (
     AdjustableBlock,
     AudioAdjustableBlock,
 )
-from components.audio_processing.play_audio import AudioThread
-from components.video_processing.play_video import VideoPlayerUI
-from utils.json_handler import media_clips_to_json, pars_config, save_json_config
-from utils.data_structures import DataTypeEnum, FILE_NAME, TIMELINE_START, TIMELINE_END, MediaClip, INIT_AUDIO_LENGTH_S, TimelinesTypeEnum
-
-from components.gui_components.qt_waveform_item import WaveformItem
 from components.gui_components.qt_vertical_scroling_area import VerticalScrollArea
-from utils.data_structures import PIXELS_PER_SEC, MAX_VIDEO_DURATION, TransitionTypeEnum
+from components.gui_components.qt_video_timeline import VideoTimelineWidget
+from components.gui_components.qt_waveform_item import WaveformItem
+from components.video_processing.play_video import VideoPlayerUI
 from main import create_instagram_reel, logger
-
-from components.audio_processing.dowload_music import DownloadThread
-from utils.data_structures import Segment
-from pathlib import Path
+from utils.data_structures import (
+    FILE_NAME,
+    INIT_AUDIO_LENGTH_S,
+    MAX_VIDEO_DURATION,
+    PIXELS_PER_SEC,
+    TIMELINE_END,
+    TIMELINE_START,
+    DataTypeEnum,
+    MediaClip,
+    Segment,
+    TimelinesTypeEnum,
+    TransitionTypeEnum,
+)
+from utils.json_handler import pars_config, save_json_config
 
 
 class InstagramReelCreatorGui(QWidget):
@@ -51,52 +60,29 @@ class InstagramReelCreatorGui(QWidget):
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
-        # Video frame for VLC
+        # Video frame for VLC Video Player
         self.video_frame = VideoPlayerUI()
         self.layout.addWidget(self.video_frame)
 
         self.scroll = VerticalScrollArea()
+        self.blocks_configs = {}
 
         # TODO:
         # add text timeline
         # ======================= Video Timeline View ===========================
-        self.render_preview_btn = QPushButton('Render Preview')
-        self.fast_preview_btn = QPushButton('Fast Preview')
-        self.load_config_btn = QPushButton('Load Timeline Config')
-        self.save_config_btn = QPushButton('Save Timeline Config')
-        self.final_render_btn = QPushButton('Final Render')
-        self.work_dir_btn = QPushButton('Select Work Dir')
-        self.work_dir_box = QLineEdit(self)
-
-        self.timelineView = QGraphicsView()
-        self.timelineScene = QGraphicsScene()
-        self.timelineView.setScene(self.timelineScene)
-        self.timelineView.setFixedHeight(300)
-
         self.scroll.addWidget(QLabel('Video Timeline:'))
-        timeline_view_controls_layout = QHBoxLayout()
-        timeline_view_work_dir_layout = QHBoxLayout()
-        timeline_view_controls_layout.addWidget(self.load_config_btn)
-        timeline_view_controls_layout.addWidget(self.save_config_btn)
-        timeline_view_controls_layout.addWidget(self.fast_preview_btn)
-        timeline_view_controls_layout.addWidget(self.render_preview_btn)
-        timeline_view_controls_layout.addWidget(self.final_render_btn)
-        timeline_view_work_dir_layout.addWidget(self.work_dir_btn)
-        timeline_view_work_dir_layout.addWidget(self.work_dir_box)
-        self.scroll.addLayout(timeline_view_controls_layout)
-        self.scroll.addLayout(timeline_view_work_dir_layout)
-        self.scroll.addWidget(self.timelineView)
-        self.draw_video_time_grid(90)
-        self.blocks_configs = {}
+        self.video_timeline = VideoTimelineWidget()
+        self.scroll.addLayout(self.video_timeline.timeline_view_controls_layout)
+        self.scroll.addLayout(self.video_timeline.timeline_view_work_dir_layout)
+        self.scroll.addWidget(self.video_timeline.timelineView)
+        self.video_timeline.draw_video_time_grid(90)
+        self.video_timeline.load_config_btn.clicked.connect(self.load_config)
+        self.video_timeline.save_config_btn.clicked.connect(self.save_config)
+        self.video_timeline.fast_preview_btn.clicked.connect(self.fast_preview)
+        self.video_timeline.render_preview_btn.clicked.connect(self.render_preview)
+        self.video_timeline.final_render_btn.clicked.connect(self.final_render)
+        # ========================================================================
 
-        # Connect buttons
-        self.load_config_btn.clicked.connect(self.load_config)
-        self.save_config_btn.clicked.connect(self.save_config)
-        self.fast_preview_btn.clicked.connect(self.fast_preview)
-        self.work_dir_btn.clicked.connect(self.get_work_dir)
-        self.render_preview_btn.clicked.connect(self.render_preview)
-        self.final_render_btn.clicked.connect(self.final_render)
-        self.blocks = []
 
         # Audio Timeline
         self.loadAudioBtn = QPushButton('Load Audio')
@@ -173,7 +159,7 @@ class InstagramReelCreatorGui(QWidget):
 
     def show_warning(self, text):
         msg = QMessageBox(self)
-        msg.setIcon(QMessageBox.Warning)  # Use Critical for errors
+        msg.setIcon(QMessageBox.Warning)
         msg.setWindowTitle('Warning')
         msg.setText(text)
         msg.setStandardButtons(QMessageBox.Ok)
@@ -213,7 +199,7 @@ class InstagramReelCreatorGui(QWidget):
         return None
 
     def update_blocks_configs(self):
-        for item in self.timelineView.items():
+        for item in self.video_timeline.timelineView.items():
             if isinstance(item, AdjustableBlock):
                 file_name = item.block_config[FILE_NAME]
                 start = item.block_config['start']
@@ -244,13 +230,13 @@ class InstagramReelCreatorGui(QWidget):
             if setting.type != DataTypeEnum.AUDIO:
                 segments_video.append(
                     Segment(
-                        path=str(os.path.join(self.work_dir_box.text(), file)), start=setting.start, end=setting.end
+                        path=str(os.path.join(self.video_timeline.work_dir_box.text(), file)), start=setting.start, end=setting.end
                     )
                 )
             elif setting.type == DataTypeEnum.AUDIO:
                 segments_audio.append(
                     Segment(
-                        path=str(os.path.join(self.work_dir_box.text(), file)), start=setting.start, end=setting.end
+                        path=str(os.path.join(self.video_timeline.work_dir_box.text(), file)), start=setting.start, end=setting.end
                     )
                 )
 
@@ -298,17 +284,16 @@ class InstagramReelCreatorGui(QWidget):
         config_path, _ = QFileDialog.getOpenFileName(self, 'Open Config File', '', 'JSON Files (*.json)')
         if not config_path:
             return
-        if self.work_dir_box.text() == '':
+        if self.video_timeline.work_dir_box.text() == '':
             config_dir = os.path.dirname(config_path)
-            self.work_dir_box.setText(config_dir)
+            self.video_timeline.work_dir_box.setText(config_dir)
         else:
-            config_dir = self.work_dir_box.text()
+            config_dir = self.video_timeline.work_dir_box.text()
         config_data = pars_config(config_path)
 
-        self.video_clips = {}
-        self.timelineScene.clear()
+
         self._load_audio_timeline(config_data)
-        self._load_video_timeline(config_data, config_dir)
+        self.blocks_configs |= self.video_timeline.load_video_timeline(config_data, config_dir)
         # TODO:
         # add load text timeline
 
@@ -320,48 +305,6 @@ class InstagramReelCreatorGui(QWidget):
         for file, settings in config[TimelinesTypeEnum.AUDIO_TIMELINE.value].items():
             self.load_external_audio(file, settings.start, settings.end)
 
-
-    def _load_video_timeline(self, config_data, config_dir):
-        if not config_data.get(TimelinesTypeEnum.VIDEO_TIMELINE.value, None):
-            logger.warning(f"Empty config for {TimelinesTypeEnum.VIDEO_TIMELINE.value}")
-            return
-        start = 0
-        end = 0
-        for file, settings in config_data[TimelinesTypeEnum.VIDEO_TIMELINE.value].items():
-            try:
-                duration = max(0, min(settings.end, MAX_VIDEO_DURATION)) - max(
-                    0, min(settings.start, MAX_VIDEO_DURATION)
-                )
-                end += duration
-                width = max((end - start) * PIXELS_PER_SEC, 10)
-                x = 10 + start * PIXELS_PER_SEC
-
-                if width <= 0:
-                    logger.warning(f"Skipping {file} because width <= 0")
-                    continue
-                # TODO:
-                # handle order change
-                self.blocks_configs[file] = settings
-                block_config_temp = media_clips_to_json({file: settings})
-                block_config = {
-                                   FILE_NAME: file,
-                                   TIMELINE_START: start,
-                                   TIMELINE_END: end,
-                                   'duration': duration,
-                                   # add max duration of video to disable expanding for more
-                                   'type': DataTypeEnum.VIDEO,
-                               } | block_config_temp[file]
-
-                block = AdjustableBlock(x, 10, width, 200, label='', block_config=block_config)
-                self.timelineScene.addItem(block)
-                full_path = os.path.join(config_dir, file)
-                if not os.path.exists(full_path):
-                    print(f"Warning: file not found {full_path}")
-                self.video_clips[full_path] = settings
-            except Exception as e:
-                print(f"Error processing {file}: {e}")
-            start = end
-        self.draw_video_time_grid(MAX_VIDEO_DURATION)
 
     def fast_preview(self):
         video_segments, audio_segments = self.update_blocks_configs()
@@ -376,24 +319,6 @@ class InstagramReelCreatorGui(QWidget):
     def final_render(self):
         self.update_blocks_configs()
         self.run_main_script(False)
-
-    def get_work_dir(self):
-        folder = QFileDialog.getExistingDirectory(
-            self,
-            'Select Folder',
-            '',
-            QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks,
-        )
-        if folder:
-            self.work_dir_box.setText(folder)
-
-    def draw_video_time_grid(self, max_seconds):
-        for second in range(max_seconds + 1):
-            x = 10 + second * PIXELS_PER_SEC
-            self.timelineScene.addLine(x, 0, x, 220, Qt.gray)
-            label = QGraphicsTextItem(f"{second}s")
-            label.setPos(x + 2, 220)
-            self.timelineScene.addItem(label)
 
     def draw_audio_time_grid(self, max_seconds, height):
         for second in range(max_seconds + 1):

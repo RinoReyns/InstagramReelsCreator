@@ -1,16 +1,16 @@
 import logging
 import os
-
-from moviepy import AudioFileClip
-from tqdm import tqdm
 import threading
 
-from components.video_processing.video_processing_utils import get_codec
-from utils.data_structures import LoadedVideo
-from moviepy.video.VideoClip import ColorClip
+from moviepy import AudioFileClip
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 from moviepy.video.io.VideoFileClip import VideoFileClip
+from moviepy.video.VideoClip import ColorClip
+from tqdm import tqdm
+
+from components.video_processing.video_processing_utils import get_codec
 from components.video_processing.video_transitions import VideoTransitions
+from utils.data_structures import LoadedVideo
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(message)s')
 

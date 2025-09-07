@@ -3,11 +3,10 @@ from __future__ import annotations
 import argparse
 import logging
 
-from components.video_processing.video_preprocessing import VideoPreprocessing
 from components.video_processing.video_postprocessing import VideoPostProcessing
-
-from utils.json_handler import json_template_generator, pars_config
+from components.video_processing.video_preprocessing import VideoPreprocessing
 from utils.data_structures import DataTypeEnum
+from utils.json_handler import json_template_generator, pars_config
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(message)s')
 logger = logging.getLogger(__name__)

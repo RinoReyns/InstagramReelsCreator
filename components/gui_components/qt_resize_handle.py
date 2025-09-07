@@ -1,6 +1,6 @@
-from PyQt5.QtCore import Qt, QPointF
+from PyQt5.QtCore import QPointF, Qt
 from PyQt5.QtGui import QBrush
-from PyQt5.QtWidgets import QGraphicsRectItem, QGraphicsItem
+from PyQt5.QtWidgets import QGraphicsItem, QGraphicsRectItem
 
 
 class ResizeHandle(QGraphicsRectItem):

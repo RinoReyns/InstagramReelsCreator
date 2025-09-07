@@ -1,16 +1,17 @@
-from PyQt5.QtCore import Qt, QPointF
-from PyQt5.QtGui import QColor, QBrush
+import os
+
+from PyQt5.QtCore import QPointF, Qt
+from PyQt5.QtGui import QBrush, QColor
 from PyQt5.QtWidgets import QGraphicsRectItem, QGraphicsTextItem
 
 from components.gui_components.qt_resize_handle import ResizeHandle
 from utils.data_structures import (
-    PIXELS_PER_SEC,
-    DataTypeEnum,
     FILE_NAME,
-    TIMELINE_START,
+    PIXELS_PER_SEC,
     TIMELINE_END,
+    TIMELINE_START,
+    DataTypeEnum,
 )
-import os
 
 
 class AdjustableBlock(QGraphicsRectItem):

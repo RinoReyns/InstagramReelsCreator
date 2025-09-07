@@ -1,21 +1,22 @@
 import os
 import sys
+import time
 
 import vlc
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import (
-    QWidget,
+    QFileDialog,
+    QHBoxLayout,
+    QLabel,
     QPushButton,
     QSlider,
     QVBoxLayout,
-    QHBoxLayout,
-    QFileDialog,
+    QWidget,
 )
-import time
-from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QPalette
-from PyQt5.QtWidgets import QLabel
-from utils.data_structures import Segment
+
 from components.video_processing.fast_video_concat import FFmpegConcat
+from utils.data_structures import Segment
 
 
 class VideoPlayerUI(QWidget):

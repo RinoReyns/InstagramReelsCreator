@@ -1,5 +1,6 @@
-from PyQt5.QtWidgets import QWidget, QScrollArea, QVBoxLayout
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QScrollArea, QVBoxLayout, QWidget
+
 
 class VerticalScrollArea(QScrollArea):
     def __init__(self, parent=None):

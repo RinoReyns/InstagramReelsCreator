@@ -1,11 +1,13 @@
+import logging
 import os
 import tempfile
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Optional
+
 from PyQt5.QtCore import QProcess
 
-from utils.data_structures import Segment, DataTypeEnum
-import logging
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from utils.data_structures import DataTypeEnum, Segment
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S')
 # TODO:

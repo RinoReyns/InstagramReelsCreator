@@ -1,22 +1,17 @@
-import os
 import logging
+import os
 import subprocess
 
-from utils.data_structures import (
-    DataTypeEnum,
-    MediaClip,
-    LoadedVideo,
-    INSTAGRAM_RESOLUTION,
-)
+from moviepy import ImageClip, VideoFileClip
 from sympy import floor
 
-from moviepy import (
-    ImageClip,
-    VideoFileClip,
-)
-
 from components.video_processing.video_processing_utils import format_photo_to_vertical
-
+from utils.data_structures import (
+    INSTAGRAM_RESOLUTION,
+    DataTypeEnum,
+    LoadedVideo,
+    MediaClip,
+)
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(message)s')
 

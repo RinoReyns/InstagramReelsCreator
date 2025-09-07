@@ -1,5 +1,5 @@
-from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot, QTimer
 import vlc
+from PyQt5.QtCore import QObject, QThread, QTimer, pyqtSignal, pyqtSlot
 
 
 class AudioLooper(QObject):

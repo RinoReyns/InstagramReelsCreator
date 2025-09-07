@@ -1,6 +1,6 @@
-import yt_dlp
 import os
 
+import yt_dlp
 from PyQt5.QtCore import QThread, pyqtSignal
 
 

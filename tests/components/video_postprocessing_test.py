@@ -1,8 +1,8 @@
 import unittest
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import MagicMock, call, patch
 
 from components.video_processing.video_preprocessing import VideoPreprocessing
-from utils.data_structures import MediaClip, DataTypeEnum, LoadedVideo
+from utils.data_structures import DataTypeEnum, LoadedVideo, MediaClip
 
 
 class TestVideoPreprocessing(unittest.TestCase):

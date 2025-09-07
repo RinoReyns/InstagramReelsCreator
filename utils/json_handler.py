@@ -6,7 +6,12 @@ import logging
 import os
 from dataclasses import asdict, fields
 
-from utils.data_structures import MediaClip, DataTypeEnum, TransitionTypeEnum, TimelinesTypeEnum
+from utils.data_structures import (
+    DataTypeEnum,
+    MediaClip,
+    TimelinesTypeEnum,
+    TransitionTypeEnum,
+)
 
 # Configure logger
 logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(message)s')
