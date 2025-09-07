@@ -5,4 +5,4 @@ PyQt5==5.15.11
 python-vlc==3.0.21203
 soundfile==0.13.1
 sympy==1.14.0
-yt_dlp==2025.8.20
+yt_dlp==2025.8.27
