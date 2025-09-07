@@ -31,8 +31,6 @@ class VideoTimelineWidget(QWidget):
         super().__init__()
         self.render_preview_btn = QPushButton("Render Preview")
         self.fast_preview_btn = QPushButton("Fast Preview")
-        self.load_config_btn = QPushButton("Load Timeline Config")
-        self.save_config_btn = QPushButton("Save Timeline Config")
         self.final_render_btn = QPushButton("Final Render")
         self.work_dir_btn = QPushButton("Select Work Dir")
         self.work_dir_box = QLineEdit(self)
@@ -44,8 +42,6 @@ class VideoTimelineWidget(QWidget):
 
         self.timeline_view_controls_layout = QHBoxLayout()
         self.timeline_view_work_dir_layout = QHBoxLayout()
-        self.timeline_view_controls_layout.addWidget(self.load_config_btn)
-        self.timeline_view_controls_layout.addWidget(self.save_config_btn)
         self.timeline_view_controls_layout.addWidget(self.fast_preview_btn)
         self.timeline_view_controls_layout.addWidget(self.render_preview_btn)
         self.timeline_view_controls_layout.addWidget(self.final_render_btn)

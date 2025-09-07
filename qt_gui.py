@@ -12,7 +12,6 @@ from PyQt5.QtWidgets import (
     QGraphicsTextItem,
     QGraphicsView,
     QHBoxLayout,
-    QLabel,
     QLineEdit,
     QMessageBox,
     QProgressDialog,
@@ -23,10 +22,12 @@ from PyQt5.QtWidgets import (
 
 from components.audio_processing.dowload_music import DownloadThread
 from components.audio_processing.play_audio import AudioThread
+from components.gui_components.qt_text_timeline import TextTimelineWidget
 from components.gui_components.qt_timeline_block import (
     AdjustableBlock,
     AudioAdjustableBlock,
 )
+from components.gui_components.qt_utils import get_header_text_label
 from components.gui_components.qt_vertical_scroling_area import VerticalScrollArea
 from components.gui_components.qt_video_timeline import VideoTimelineWidget
 from components.gui_components.qt_waveform_item import WaveformItem
@@ -60,30 +61,47 @@ class InstagramReelCreatorGui(QWidget):
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
-        # Video frame for VLC Video Player
+        # ===================== Video frame for VLC Video Player =======================
         self.video_frame = VideoPlayerUI()
         self.layout.addWidget(self.video_frame)
+        # ===============================================================================
+
+        # ================== Global Control Buttons =====================================
+        self.load_config_btn = QPushButton("Load Timeline Config")
+        self.save_config_btn = QPushButton("Save Timeline Config")
+        self.load_config_btn.clicked.connect(self.load_config)
+        self.save_config_btn.clicked.connect(self.save_config)
+
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addWidget(self.load_config_btn)
+        buttons_layout.addWidget(self.save_config_btn)
+        self.layout.addLayout(buttons_layout)
+        # ================================================================================
 
         self.scroll = VerticalScrollArea()
         self.blocks_configs = {}
 
-        # TODO:
-        # add text timeline
+        # ======================= Text Timeline View ===========================
+        self.scroll.addWidget(get_header_text_label("Text Timeline"))
+        self.text_timeline = TextTimelineWidget()
+        self.scroll.addLayout(self.text_timeline.timeline_view_controls_layout)
+        self.scroll.addWidget(self.text_timeline.timelineView)
+        self.text_timeline.draw_text_time_grid(MAX_VIDEO_DURATION)
+        # ========================================================================
+
         # ======================= Video Timeline View ===========================
-        self.scroll.addWidget(QLabel("Video Timeline:"))
+        self.scroll.addWidget(get_header_text_label("Video Timeline:"))
         self.video_timeline = VideoTimelineWidget()
         self.scroll.addLayout(self.video_timeline.timeline_view_controls_layout)
         self.scroll.addLayout(self.video_timeline.timeline_view_work_dir_layout)
         self.scroll.addWidget(self.video_timeline.timelineView)
-        self.video_timeline.draw_video_time_grid(90)
-        self.video_timeline.load_config_btn.clicked.connect(self.load_config)
-        self.video_timeline.save_config_btn.clicked.connect(self.save_config)
+        self.video_timeline.draw_video_time_grid(MAX_VIDEO_DURATION)
         self.video_timeline.fast_preview_btn.clicked.connect(self.fast_preview)
         self.video_timeline.render_preview_btn.clicked.connect(self.render_preview)
         self.video_timeline.final_render_btn.clicked.connect(self.final_render)
         # ========================================================================
 
-        # Audio Timeline
+        # ======================= Audio Timeline View ============================
         self.loadAudioBtn = QPushButton("Load Audio")
         self.playAudioBtn = QPushButton("Play")
         self.pauseAudioBtn = QPushButton("Pause")
@@ -95,7 +113,7 @@ class InstagramReelCreatorGui(QWidget):
         self.audioTimelineScene = QGraphicsScene()
         self.audioTimelineView.setScene(self.audioTimelineScene)
         self.audioTimelineView.setFixedHeight(220)
-        self.scroll.addWidget(QLabel("Audio Timeline:"))
+        self.scroll.addWidget(get_header_text_label("Audio Timeline:"))
         audio_controls_layout = QHBoxLayout()
         audio_download_controls_layout = QHBoxLayout()
         audio_controls_layout.addWidget(self.loadAudioBtn)
@@ -113,6 +131,7 @@ class InstagramReelCreatorGui(QWidget):
         self.loadAudioBtn.clicked.connect(self.load_audio_window)
         self.downloadAudioBtn.clicked.connect(self.download_audio)
         self.audio_thread = None
+        # ========================================================================
 
         self.scroll.add_stretch()
 
