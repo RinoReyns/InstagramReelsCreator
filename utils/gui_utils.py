@@ -1,2 +1,2 @@
-FOLDER_ICON = '📁'
-JSON_ICON = '📄'
+FOLDER_ICON = "📁"
+JSON_ICON = "📄"

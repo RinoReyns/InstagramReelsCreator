@@ -8,18 +8,18 @@ def download_audio_as_wav(url, output_dir, progress_callback=None):
     os.makedirs(output_dir, exist_ok=True)
 
     ydl_opts = {
-        'format': 'bestaudio/best',
-        'outtmpl': os.path.join(output_dir, '%(title)s.%(ext)s'),
-        'postprocessors': [
+        "format": "bestaudio/best",
+        "outtmpl": os.path.join(output_dir, "%(title)s.%(ext)s"),
+        "postprocessors": [
             {
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'wav',
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "wav",
             }
         ],
-        'prefer_ffmpeg': True,
-        'keepvideo': True,
-        'quiet': False,
-        'progress_hooks': [progress_callback] if progress_callback else [],
+        "prefer_ffmpeg": True,
+        "keepvideo": True,
+        "quiet": False,
+        "progress_hooks": [progress_callback] if progress_callback else [],
     }
 
     def hook(d):
@@ -41,14 +41,14 @@ class DownloadThread(QThread):
         super().__init__()
         self.url = url
         self.download_dir = download_dir
-        self.downloaded_file = ''
+        self.downloaded_file = ""
 
     def run(self):
         def progress_hook(d):
-            if d['status'] == 'downloading':
-                percent = d.get('_percent_str', '').strip()
+            if d["status"] == "downloading":
+                percent = d.get("_percent_str", "").strip()
                 self.progress_signal.emit(f"Downloading: {percent}")
-            elif d['status'] == 'finished':
+            elif d["status"] == "finished":
                 self.progress_signal.emit(f"Finished: {d['filename']}")
 
         self.downloaded_file = download_audio_as_wav(self.url, self.download_dir, progress_callback=progress_hook)

@@ -29,12 +29,12 @@ from utils.json_handler import media_clips_to_json
 class VideoTimelineWidget(QWidget):
     def __init__(self):
         super().__init__()
-        self.render_preview_btn = QPushButton('Render Preview')
-        self.fast_preview_btn = QPushButton('Fast Preview')
-        self.load_config_btn = QPushButton('Load Timeline Config')
-        self.save_config_btn = QPushButton('Save Timeline Config')
-        self.final_render_btn = QPushButton('Final Render')
-        self.work_dir_btn = QPushButton('Select Work Dir')
+        self.render_preview_btn = QPushButton("Render Preview")
+        self.fast_preview_btn = QPushButton("Fast Preview")
+        self.load_config_btn = QPushButton("Load Timeline Config")
+        self.save_config_btn = QPushButton("Save Timeline Config")
+        self.final_render_btn = QPushButton("Final Render")
+        self.work_dir_btn = QPushButton("Select Work Dir")
         self.work_dir_box = QLineEdit(self)
 
         self.timelineView = QGraphicsView()
@@ -66,8 +66,8 @@ class VideoTimelineWidget(QWidget):
     def get_work_dir(self):
         folder = QFileDialog.getExistingDirectory(
             self,
-            'Select Folder',
-            '',
+            "Select Folder",
+            "",
             QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks,
         )
         if folder:
@@ -98,15 +98,15 @@ class VideoTimelineWidget(QWidget):
                 blocks_configs[file] = settings
                 block_config_temp = media_clips_to_json({file: settings})
                 block_config = {
-                                   FILE_NAME: file,
-                                   TIMELINE_START: start,
-                                   TIMELINE_END: end,
-                                   'duration': duration,
-                                   # add max duration of video to disable expanding for more
-                                   'type': DataTypeEnum.VIDEO,
-                               } | block_config_temp[file]
+                    FILE_NAME: file,
+                    TIMELINE_START: start,
+                    TIMELINE_END: end,
+                    "duration": duration,
+                    # add max duration of video to disable expanding for more
+                    "type": DataTypeEnum.VIDEO,
+                } | block_config_temp[file]
 
-                block = AdjustableBlock(x, 10, width, 200, label='', block_config=block_config)
+                block = AdjustableBlock(x, 10, width, 200, label="", block_config=block_config)
                 self.timelineScene.addItem(block)
                 full_path = os.path.join(config_dir, file)
                 if not os.path.exists(full_path):

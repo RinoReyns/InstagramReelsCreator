@@ -49,12 +49,12 @@ from utils.json_handler import pars_config, save_json_config
 
 
 class InstagramReelCreatorGui(QWidget):
-    DOWNLOAD_DIR = 'download'
+    DOWNLOAD_DIR = "download"
     AUDIO_SELECTOR_HEIGHT = 145
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('Instagram Reel Creator')
+        self.setWindowTitle("Instagram Reel Creator")
         self.setGeometry(750, 50, 1750, 1000)
 
         self.layout = QVBoxLayout()
@@ -70,7 +70,7 @@ class InstagramReelCreatorGui(QWidget):
         # TODO:
         # add text timeline
         # ======================= Video Timeline View ===========================
-        self.scroll.addWidget(QLabel('Video Timeline:'))
+        self.scroll.addWidget(QLabel("Video Timeline:"))
         self.video_timeline = VideoTimelineWidget()
         self.scroll.addLayout(self.video_timeline.timeline_view_controls_layout)
         self.scroll.addLayout(self.video_timeline.timeline_view_work_dir_layout)
@@ -83,20 +83,19 @@ class InstagramReelCreatorGui(QWidget):
         self.video_timeline.final_render_btn.clicked.connect(self.final_render)
         # ========================================================================
 
-
         # Audio Timeline
-        self.loadAudioBtn = QPushButton('Load Audio')
-        self.playAudioBtn = QPushButton('Play')
-        self.pauseAudioBtn = QPushButton('Pause')
-        self.stopAudioBtn = QPushButton('Stop')
-        self.downloadAudioBtn = QPushButton('Download Audio from URL')
+        self.loadAudioBtn = QPushButton("Load Audio")
+        self.playAudioBtn = QPushButton("Play")
+        self.pauseAudioBtn = QPushButton("Pause")
+        self.stopAudioBtn = QPushButton("Stop")
+        self.downloadAudioBtn = QPushButton("Download Audio from URL")
         self.audio_url_box = QLineEdit(self)
 
         self.audioTimelineView = QGraphicsView()
         self.audioTimelineScene = QGraphicsScene()
         self.audioTimelineView.setScene(self.audioTimelineScene)
         self.audioTimelineView.setFixedHeight(220)
-        self.scroll.addWidget(QLabel('Audio Timeline:'))
+        self.scroll.addWidget(QLabel("Audio Timeline:"))
         audio_controls_layout = QHBoxLayout()
         audio_download_controls_layout = QHBoxLayout()
         audio_controls_layout.addWidget(self.loadAudioBtn)
@@ -118,12 +117,12 @@ class InstagramReelCreatorGui(QWidget):
         self.scroll.add_stretch()
 
     def load_audio_window(self):
-        audio_path, _ = QFileDialog.getOpenFileName(self, 'Open Audio File', '', 'Audio Files (*.wav *.mp3)')
+        audio_path, _ = QFileDialog.getOpenFileName(self, "Open Audio File", "", "Audio Files (*.wav *.mp3)")
         self.load_external_audio(audio_path)
 
     def load_external_audio(self, audio_path, start=0, stop=INIT_AUDIO_LENGTH_S):
         if not audio_path:
-            self.show_warning('None audio file was loaded.')
+            self.show_warning("None audio file was loaded.")
             return
         self.audio_path = Path(audio_path)
         self.audioTimelineScene.clear()
@@ -135,9 +134,9 @@ class InstagramReelCreatorGui(QWidget):
             FILE_NAME: audio_path,
             TIMELINE_START: start,
             TIMELINE_END: stop,
-            'start': start,
-            'end': stop,
-            'type': DataTypeEnum.AUDIO,
+            "start": start,
+            "end": stop,
+            "type": DataTypeEnum.AUDIO,
         }
         # Add adjustable block for audio segment, full width initially
 
@@ -160,18 +159,18 @@ class InstagramReelCreatorGui(QWidget):
     def show_warning(self, text):
         msg = QMessageBox(self)
         msg.setIcon(QMessageBox.Warning)
-        msg.setWindowTitle('Warning')
+        msg.setWindowTitle("Warning")
         msg.setText(text)
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()
 
     def download_audio(self):
         if not self.audio_url_box.text():
-            self.show_warning('Url to download is empty.')
+            self.show_warning("Url to download is empty.")
             return
         # Setup progress dialog
-        self.progress_dialog = QProgressDialog('Downloading...', 'Cancel', 0, 0, self)
-        self.progress_dialog.setWindowTitle('Download Progress')
+        self.progress_dialog = QProgressDialog("Downloading...", "Cancel", 0, 0, self)
+        self.progress_dialog.setWindowTitle("Download Progress")
         self.progress_dialog.setMinimumDuration(0)
         self.progress_dialog.resize(400, 100)
         self.progress_dialog.show()
@@ -182,7 +181,7 @@ class InstagramReelCreatorGui(QWidget):
         self.thread.start()
 
         def on_finished():
-            self.update_progress('Download completed!')
+            self.update_progress("Download completed!")
             self.progress_dialog.close()
             self.load_external_audio(self.thread.downloaded_file)
 
@@ -202,16 +201,16 @@ class InstagramReelCreatorGui(QWidget):
         for item in self.video_timeline.timelineView.items():
             if isinstance(item, AdjustableBlock):
                 file_name = item.block_config[FILE_NAME]
-                start = item.block_config['start']
-                end = item.block_config['end']
+                start = item.block_config["start"]
+                end = item.block_config["end"]
                 self.blocks_configs[file_name].start = start
                 self.blocks_configs[file_name].end = end
 
         for item in self.audioTimelineScene.items():
             if isinstance(item, AudioAdjustableBlock):
                 file_name = item.block_config[FILE_NAME]
-                start = item.block_config['start']
-                end = item.block_config['end']
+                start = item.block_config["start"]
+                end = item.block_config["end"]
                 if file_name not in self.blocks_configs:
                     self.blocks_configs[file_name] = MediaClip(
                         start=start,
@@ -230,13 +229,17 @@ class InstagramReelCreatorGui(QWidget):
             if setting.type != DataTypeEnum.AUDIO:
                 segments_video.append(
                     Segment(
-                        path=str(os.path.join(self.video_timeline.work_dir_box.text(), file)), start=setting.start, end=setting.end
+                        path=str(os.path.join(self.video_timeline.work_dir_box.text(), file)),
+                        start=setting.start,
+                        end=setting.end,
                     )
                 )
             elif setting.type == DataTypeEnum.AUDIO:
                 segments_audio.append(
                     Segment(
-                        path=str(os.path.join(self.video_timeline.work_dir_box.text(), file)), start=setting.start, end=setting.end
+                        path=str(os.path.join(self.video_timeline.work_dir_box.text(), file)),
+                        start=setting.start,
+                        end=setting.end,
                     )
                 )
 
@@ -244,8 +247,8 @@ class InstagramReelCreatorGui(QWidget):
 
     def restart_audio_thread(self):
         # Stop existing thread if running
-        if hasattr(self, 'audio_thread') and self.audio_thread.isRunning():
-            print('Stopping existing audio thread...')
+        if hasattr(self, "audio_thread") and self.audio_thread.isRunning():
+            print("Stopping existing audio thread...")
 
             # Stop loop logic
             self.audio_thread.looper.stop_loop()
@@ -263,8 +266,8 @@ class InstagramReelCreatorGui(QWidget):
 
     def save_config(self):
         self.update_blocks_configs()
-        config_path, _ = QFileDialog.getSaveFileName(self, 'Save Config File', '', 'JSON Files (*.json)')
-        config =  {timeline.value: {} for timeline in TimelinesTypeEnum}
+        config_path, _ = QFileDialog.getSaveFileName(self, "Save Config File", "", "JSON Files (*.json)")
+        config = {timeline.value: {} for timeline in TimelinesTypeEnum}
         for name, element in self.blocks_configs.items():
             block_type = element.type
 
@@ -277,20 +280,19 @@ class InstagramReelCreatorGui(QWidget):
             else:
                 raise ValueError(f"{block_type} not supported")
 
-            config[timeline_type][name] =  element
+            config[timeline_type][name] = element
         save_json_config(config, config_path)
 
     def load_config(self):
-        config_path, _ = QFileDialog.getOpenFileName(self, 'Open Config File', '', 'JSON Files (*.json)')
+        config_path, _ = QFileDialog.getOpenFileName(self, "Open Config File", "", "JSON Files (*.json)")
         if not config_path:
             return
-        if self.video_timeline.work_dir_box.text() == '':
+        if self.video_timeline.work_dir_box.text() == "":
             config_dir = os.path.dirname(config_path)
             self.video_timeline.work_dir_box.setText(config_dir)
         else:
             config_dir = self.video_timeline.work_dir_box.text()
         config_data = pars_config(config_path)
-
 
         self._load_audio_timeline(config_data)
         self.blocks_configs |= self.video_timeline.load_video_timeline(config_data, config_dir)
@@ -305,10 +307,9 @@ class InstagramReelCreatorGui(QWidget):
         for file, settings in config[TimelinesTypeEnum.AUDIO_TIMELINE.value].items():
             self.load_external_audio(file, settings.start, settings.end)
 
-
     def fast_preview(self):
         video_segments, audio_segments = self.update_blocks_configs()
-        self.video_frame.fast_preview(video_segments, os.path.abspath('preview'), audio_segments)
+        self.video_frame.fast_preview(video_segments, os.path.abspath("preview"), audio_segments)
 
     def render_preview(self):
         self.update_blocks_configs()
@@ -334,12 +335,12 @@ class InstagramReelCreatorGui(QWidget):
         threading.Thread(target=self.execute_script, args=(preview,), daemon=True).start()
 
     def execute_script(self, preview):
-        create_instagram_reel(self.blocks_configs, self.work_dir_box.text(), 'test_output.mp4', preview)
+        create_instagram_reel(self.blocks_configs, self.work_dir_box.text(), "test_output.mp4", preview)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QApplication(sys.argv)
-    font = QFont('Arial', 9)  # (family, point size)
+    font = QFont("Arial", 9)  # (family, point size)
     app.setFont(font)  # apply globally
     window = InstagramReelCreatorGui()
     window.show()
