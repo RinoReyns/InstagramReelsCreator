@@ -4,7 +4,6 @@ import threading
 
 from moviepy import AudioFileClip
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
-from moviepy.video.io.VideoFileClip import VideoFileClip
 from moviepy.video.VideoClip import ColorClip
 from tqdm import tqdm
 
@@ -62,7 +61,7 @@ class VideoPostProcessing:
         clip.clip = composed.with_duration(clip.clip.duration).with_audio(resized_clip.audio)
         return clip
 
-    def apply_transitions(self, clips: list[LoadedVideo]) -> VideoFileClip:
+    def apply_transitions(self, clips: list[LoadedVideo]):
         final_clip = clips[0].clip
 
         for i in range(1, len(clips)):
