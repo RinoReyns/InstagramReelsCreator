@@ -1,8 +1,8 @@
+import logging
 import os
 import sys
 import threading
 from pathlib import Path
-import logging
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
@@ -31,7 +31,6 @@ from components.gui_components.qt_video_timeline import VideoTimelineWidget
 from components.gui_components.qt_waveform_item import WaveformItem
 from components.video_processing.play_video import VideoPlayerUI
 from main import create_instagram_reel
-
 from utils.data_structures import (
     FILE_NAME,
     INIT_AUDIO_LENGTH_S,

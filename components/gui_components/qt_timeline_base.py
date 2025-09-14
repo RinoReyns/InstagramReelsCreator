@@ -1,5 +1,6 @@
-from PyQt5.QtCore import Qt
 import logging
+
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QGraphicsScene,
     QGraphicsTextItem,
@@ -22,6 +23,7 @@ from utils.utils import check_if_file_exists
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(message)s")
 logger = logging.getLogger(__name__)
+
 
 class BaseTimelineWidget(QWidget):
     MAX_HEIGHT = 280

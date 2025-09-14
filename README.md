@@ -14,4 +14,3 @@ sudo apt install vlc libvlc-dev libvlccore-dev
 
 ### Inspirations:
 1. Repo is inspired by: https://github.com/SamurAIGPT/AI-Youtube-Shorts-Generator
-
