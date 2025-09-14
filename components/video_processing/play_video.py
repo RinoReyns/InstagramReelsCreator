@@ -76,7 +76,7 @@ class VideoPlayerUI(QWidget):
 
         # Embed VLC into Qt widget
         if sys.platform.startswith("linux"):
-            self.player.set_xwindow(self.video_frame.winId())
+            self.player.set_xwindow(int(self.video_frame.winId()))
         elif sys.platform == "win32":
             self.player.set_hwnd(int(self.video_frame.winId()))
         elif sys.platform == "darwin":

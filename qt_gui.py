@@ -2,6 +2,7 @@ import os
 import sys
 import threading
 from pathlib import Path
+import logging
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
@@ -29,7 +30,8 @@ from components.gui_components.qt_vertical_scroling_area import VerticalScrollAr
 from components.gui_components.qt_video_timeline import VideoTimelineWidget
 from components.gui_components.qt_waveform_item import WaveformItem
 from components.video_processing.play_video import VideoPlayerUI
-from main import create_instagram_reel, logger
+from main import create_instagram_reel
+
 from utils.data_structures import (
     FILE_NAME,
     INIT_AUDIO_LENGTH_S,
@@ -44,6 +46,9 @@ from utils.data_structures import (
     TransitionTypeEnum,
 )
 from utils.json_handler import pars_config, save_json_config
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(message)s")
+logger = logging.getLogger(__name__)
 
 
 class InstagramReelCreatorGui(QWidget):
