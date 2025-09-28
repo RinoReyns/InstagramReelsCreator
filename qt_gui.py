@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 import threading
@@ -49,6 +50,8 @@ from utils.json_handler import pars_config, save_json_config
 # add button clear all timelines
 # optimize final render and establish some metrics for comparison
 
+logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(message)s")
+logger = logging.getLogger(__name__)
 
 class InstagramReelCreatorGui(QWidget):
     DOWNLOAD_DIR = "download"

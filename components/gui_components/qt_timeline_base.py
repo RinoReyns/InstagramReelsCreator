@@ -1,3 +1,5 @@
+import logging
+
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QGraphicsScene,
@@ -8,7 +10,6 @@ from PyQt5.QtWidgets import (
 )
 
 from components.gui_components.qt_timeline_block import AdjustableBlock
-from main import logger
 from utils.data_structures import (
     FILE_NAME,
     MAX_VIDEO_DURATION,
@@ -19,6 +20,9 @@ from utils.data_structures import (
 )
 from utils.json_handler import media_clips_to_json
 from utils.utils import check_if_file_exists
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(message)s")
+logger = logging.getLogger(__name__)
 
 
 class BaseTimelineWidget(QWidget):
