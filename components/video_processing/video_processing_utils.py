@@ -1,3 +1,4 @@
+import os
 import subprocess
 
 import cv2
@@ -74,3 +75,36 @@ def get_codec():
         # codec = "h264_qsv"
         print("⚠️ Falling back to CPU encoding.")
     return codec
+
+
+def video_to_frames(segment, output_dir="frames"):
+    """
+    Extract frames from a video segment and save as JPEGs.
+
+    Args:
+        segment (Segment): Video segment with content path, start, and end times.
+        output_dir (str): Directory to save extracted frames.
+    """
+
+    cap = cv2.VideoCapture(segment.content)
+    if not cap.isOpened():
+        raise IOError(f"Could not open video: {segment.content}")
+
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    start_frame = int(segment.start * fps)
+    end_frame = int(segment.end * fps)
+
+    cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
+
+    frame_idx = start_frame
+    while frame_idx <= end_frame:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        out_path = os.path.join(output_dir, f"frame_{frame_idx}.jpg")
+        cv2.imwrite(out_path, frame)
+
+        frame_idx += 1
+
+    cap.release()

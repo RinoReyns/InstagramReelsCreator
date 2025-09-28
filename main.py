@@ -1,9 +1,11 @@
 import argparse
 import logging
+import os
 
 from components.video_processing.video_postprocessing import VideoPostProcessing
 from components.video_processing.video_preprocessing import VideoPreprocessing
-from utils.data_structures import DataTypeEnum
+from components.video_processing.video_processing_utils import video_to_frames
+from utils.data_structures import DataTypeEnum, Segment
 from utils.json_handler import json_template_generator, pars_config
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(message)s")
@@ -46,6 +48,14 @@ def create_instagram_reel(config_file, media_dir, output_path, preview=False):
     else:
         video_postprocessing.final_render(output_path, clips, audio_path=audio_path, audio_start=audio_start)
     video_preprocessing.cleanup_temp_files()
+
+
+def create_video_cover(video_segments: list[Segment], output_dir):
+    os.makedirs(output_dir, exist_ok=True)
+    for segment in video_segments:
+        segment_cover_output = os.path.join(output_dir, os.path.basename(segment.content.split(".")[0]))
+        os.makedirs(segment_cover_output, exist_ok=True)
+        video_to_frames(segment, segment_cover_output)
 
 
 def arg_paser():

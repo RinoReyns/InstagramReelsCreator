@@ -40,7 +40,7 @@ class MediaClip:
     start: float
     end: float
     transition: TransitionTypeEnum
-    type: DataTypeEnum  # 'video', 'image', 'audio'
+    type: DataTypeEnum  # 'video', 'photo', 'audio'
     video_resampling: int
 
 
@@ -61,6 +61,6 @@ TIMELINE_END = "timeline_end"
 
 @dataclass
 class Segment:
-    path: str
+    content: str
     start: float
     end: float

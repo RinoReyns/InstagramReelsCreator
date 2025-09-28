@@ -30,7 +30,7 @@ from components.gui_components.qt_vertical_scroling_area import VerticalScrollAr
 from components.gui_components.qt_video_timeline import VideoTimelineWidget
 from components.gui_components.qt_waveform_item import WaveformItem
 from components.video_processing.play_video import VideoPlayerUI
-from main import create_instagram_reel
+from main import create_instagram_reel, create_video_cover, logger
 from utils.data_structures import (
     FILE_NAME,
     INIT_AUDIO_LENGTH_S,
@@ -46,8 +46,11 @@ from utils.data_structures import (
 )
 from utils.json_handler import pars_config, save_json_config
 
+# TODO:
+# add button clear all timelines
+# optimize final render and establish some metrics for comparison
+
 logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(message)s")
-logger = logging.getLogger(__name__)
 
 
 class InstagramReelCreatorGui(QWidget):
@@ -72,8 +75,10 @@ class InstagramReelCreatorGui(QWidget):
         # ================== Global Control Buttons =====================================
         self.load_config_btn = QPushButton("Load Timeline Config")
         self.save_config_btn = QPushButton("Save Timeline Config")
+        self.create_cover_btn = QPushButton("Create Video Cover")
         self.load_config_btn.clicked.connect(self.load_config)
         self.save_config_btn.clicked.connect(self.save_config)
+        self.create_cover_btn.clicked.connect(self.create_video_cover)
 
         self.work_dir_btn = QPushButton("Select Work Dir")
         self.work_dir_box = QLineEdit(self)
@@ -85,6 +90,7 @@ class InstagramReelCreatorGui(QWidget):
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(self.load_config_btn)
         buttons_layout.addWidget(self.save_config_btn)
+        buttons_layout.addWidget(self.create_cover_btn)
         self.work_dir_btn.clicked.connect(self.get_work_dir)
         self.layout.addLayout(buttons_layout)
         self.layout.addLayout(timeline_view_work_dir_layout)
@@ -169,11 +175,11 @@ class InstagramReelCreatorGui(QWidget):
             "type": DataTypeEnum.AUDIO,
         }
         # Add adjustable block for audio segment, full width initially
-
+        width = INIT_AUDIO_LENGTH_S * PIXELS_PER_SEC if stop == 0 else (stop - start) * PIXELS_PER_SEC
         audio_block = AudioAdjustableBlock(
             start * PIXELS_PER_SEC,
             5,
-            INIT_AUDIO_LENGTH_S * PIXELS_PER_SEC,
+            width,
             self.AUDIO_SELECTOR_HEIGHT,
             block_config=block_config,
         )
@@ -243,8 +249,8 @@ class InstagramReelCreatorGui(QWidget):
         for item in self.audioTimelineScene.items():
             if isinstance(item, AudioAdjustableBlock):
                 file_name = item.block_config[FILE_NAME]
-                start = item.block_config["start"]
-                end = item.block_config["end"]
+                start = item.block_config[TIMELINE_START]
+                end = item.block_config[TIMELINE_END]
                 if file_name not in self.blocks_configs:
                     self.blocks_configs[file_name] = MediaClip(
                         start=start,
@@ -259,27 +265,22 @@ class InstagramReelCreatorGui(QWidget):
 
         segments_video = []
         segments_audio = []
-        for file, setting in self.blocks_configs.items():
-            if setting.type == [DataTypeEnum.VIDEO, DataTypeEnum.PHOTO]:
-                segments_video.append(
-                    Segment(
-                        path=str(os.path.join(self.work_dir_box.text(), file)),
-                        start=setting.start,
-                        end=setting.end,
-                    )
-                )
+        segments_text = []
+        for content, setting in self.blocks_configs.items():
+            segment = Segment(
+                content=str(os.path.join(self.work_dir_box.text(), content)),
+                start=setting.start,
+                end=setting.end,
+            )
+            if setting.type in [DataTypeEnum.VIDEO, DataTypeEnum.PHOTO]:
+                segments_video.append(segment)
             elif setting.type == DataTypeEnum.AUDIO:
-                segments_audio.append(
-                    Segment(
-                        path=str(os.path.join(self.work_dir_box.text(), file)),
-                        start=setting.start,
-                        end=setting.end,
-                    )
-                )
+                segments_audio.append(segment)
             elif setting.type == DataTypeEnum.TEXT:
-                pass
+                segment.content = content
+                segments_text.append(segment)
 
-        return segments_video, segments_audio
+        return segments_video, segments_audio, segments_text
 
     def restart_audio_thread(self):
         # Stop existing thread if running
@@ -329,10 +330,20 @@ class InstagramReelCreatorGui(QWidget):
         else:
             config_dir = self.work_dir_box.text()
         config_data = pars_config(config_path)
-
+        if len(config_data) == 0:
+            self.show_warning("Empty Config. Validate its structure.")
+            return
         self.blocks_configs |= self.text_timeline.load_timeline(config_data, config_dir)
         self.blocks_configs |= self.video_timeline.load_timeline(config_data, config_dir)
         self._load_audio_timeline(config_data)
+
+    def create_video_cover(self):
+        video_segments, _, _ = self.update_blocks_configs()
+        threading.Thread(
+            target=create_video_cover,
+            args=(video_segments, os.path.join(self.work_dir_box.text(), "cover")),
+            daemon=True,
+        ).start()
 
     def _load_audio_timeline(self, config):
         if not config.get(TimelinesTypeEnum.AUDIO_TIMELINE.value, None):
@@ -343,8 +354,13 @@ class InstagramReelCreatorGui(QWidget):
             self.load_external_audio(file, settings.start, settings.end)
 
     def fast_preview(self):
-        video_segments, audio_segments = self.update_blocks_configs()
-        self.video_frame.fast_preview(video_segments, os.path.abspath("preview"), audio_segments)
+        video_segments, audio_segments, text_segments = self.update_blocks_configs()
+        self.video_frame.fast_preview(
+            video_segments,
+            audio_segments,
+            text_segments,
+            os.path.abspath("preview"),
+        )
 
     def render_preview(self):
         self.update_blocks_configs()
@@ -370,7 +386,12 @@ class InstagramReelCreatorGui(QWidget):
         threading.Thread(target=self.execute_script, args=(preview,), daemon=True).start()
 
     def execute_script(self, preview):
-        create_instagram_reel(self.blocks_configs, self.work_dir_box.text(), "test_output.mp4", preview)
+        create_instagram_reel(
+            self.blocks_configs,
+            self.work_dir_box.text(),
+            os.path.join(self.work_dir_box.text(), "final_video.mp4"),
+            preview,
+        )
 
 
 if __name__ == "__main__":
