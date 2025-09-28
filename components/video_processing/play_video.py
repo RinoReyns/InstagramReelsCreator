@@ -138,8 +138,9 @@ class VideoPlayerUI(QWidget):
     def fast_preview(
         self,
         video_segments: None | list[Segment] = None,
-        output_folder: str = "",
         audio_segments: None | list[Segment] = None,
+        text_segments: None | list[Segment] = None,
+        output_folder: str = "",
     ):
         if video_segments is not None and len(video_segments) != 0:
             os.makedirs(output_folder, exist_ok=True)

@@ -93,9 +93,13 @@ def media_clips_to_json(data: dict[str, MediaClip], filepath: str = ""):
         return json_file
 
 
-def load_json(filepath):
-    with open(filepath) as f:
-        raw_data = json.load(f)
+def load_json(filepath) -> dict:
+    try:
+        with open(filepath) as f:
+            raw_data = json.load(f)
+    except Exception as e:
+        logger.error(e)
+        return {}
     return raw_data
 
 
@@ -114,7 +118,8 @@ def get_timeline_clips(media, config):
 
 def media_clips_from_json(filepath: str) -> dict[str, dict[str, MediaClip]]:
     config = {}
-    for timeline_name, media in load_json(filepath).items():
+    json_config = load_json(filepath)
+    for timeline_name, media in json_config.items():
         if not TimelinesTypeEnum.has_value(timeline_name):
             logger.error(f"Unsupported timeline name: {timeline_name}")
             raise ValueError(f"Unsupported timeline name: {timeline_name}")

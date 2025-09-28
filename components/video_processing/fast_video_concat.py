@@ -37,7 +37,7 @@ class FFmpegConcat:
             "-to",
             str(seg.end),
             "-i",
-            seg.path,
+            seg.content,
             "-c",
             "copy",
             tmp_file,
@@ -57,12 +57,12 @@ class FFmpegConcat:
             "-to",
             str(seg.end),
             "-i",
-            seg.path,
+            seg.content,
             "-c",
             "copy",
             tmp_file,
         ]
-        self.logger.info(f"Trimming audio segment {i}: " + " ".join(["ffmpeg"] + args))
+        self.logger.info(f"Trimming audio segment {i}: {''.join(["ffmpeg"] + args)}")
         if not self._run_ffmpeg(args):
             return i, None, None, DataTypeEnum.AUDIO
         return i, tmp_file, None, DataTypeEnum.AUDIO

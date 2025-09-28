@@ -43,11 +43,11 @@ class BaseTimelineWidget(QWidget):
 
     def load_timeline(self, config_data, config_dir="") -> dict:
         blocks_configs = {}
+        self.timelineScene.clear()
         if not config_data.get(self.timeline_type, None):
             logger.warning(f"Empty config for {self.timeline_type}")
+            self.draw_time_grid(MAX_VIDEO_DURATION)
             return blocks_configs
-
-        self.timelineScene.clear()
 
         start = 0
         end = 0

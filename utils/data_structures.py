@@ -61,6 +61,6 @@ TIMELINE_END = "timeline_end"
 
 @dataclass
 class Segment:
-    path: str
+    content: str
     start: float
     end: float
