@@ -40,7 +40,7 @@ class MediaClip:
     start: float
     end: float
     transition: TransitionTypeEnum
-    type: DataTypeEnum  # 'video', 'image', 'audio'
+    type: DataTypeEnum  # 'video', 'photo', 'audio'
     video_resampling: int
 
 

@@ -29,7 +29,7 @@ from components.gui_components.qt_vertical_scroling_area import VerticalScrollAr
 from components.gui_components.qt_video_timeline import VideoTimelineWidget
 from components.gui_components.qt_waveform_item import WaveformItem
 from components.video_processing.play_video import VideoPlayerUI
-from main import create_instagram_reel, logger
+from main import create_instagram_reel, create_video_cover, logger
 from utils.data_structures import (
     FILE_NAME,
     INIT_AUDIO_LENGTH_S,
@@ -48,6 +48,7 @@ from utils.json_handler import pars_config, save_json_config
 # TODO:
 # add button clear all timelines
 # optimize final render and establish some metrics for comparison
+
 
 class InstagramReelCreatorGui(QWidget):
     DOWNLOAD_DIR = "download"
@@ -71,8 +72,10 @@ class InstagramReelCreatorGui(QWidget):
         # ================== Global Control Buttons =====================================
         self.load_config_btn = QPushButton("Load Timeline Config")
         self.save_config_btn = QPushButton("Save Timeline Config")
+        self.create_cover_btn = QPushButton("Create Video Cover")
         self.load_config_btn.clicked.connect(self.load_config)
         self.save_config_btn.clicked.connect(self.save_config)
+        self.create_cover_btn.clicked.connect(self.create_video_cover)
 
         self.work_dir_btn = QPushButton("Select Work Dir")
         self.work_dir_box = QLineEdit(self)
@@ -84,6 +87,7 @@ class InstagramReelCreatorGui(QWidget):
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(self.load_config_btn)
         buttons_layout.addWidget(self.save_config_btn)
+        buttons_layout.addWidget(self.create_cover_btn)
         self.work_dir_btn.clicked.connect(self.get_work_dir)
         self.layout.addLayout(buttons_layout)
         self.layout.addLayout(timeline_view_work_dir_layout)
@@ -261,10 +265,10 @@ class InstagramReelCreatorGui(QWidget):
         segments_text = []
         for content, setting in self.blocks_configs.items():
             segment = Segment(
-                        content=str(os.path.join(self.work_dir_box.text(), content)),
-                        start=setting.start,
-                        end=setting.end,
-                    )
+                content=str(os.path.join(self.work_dir_box.text(), content)),
+                start=setting.start,
+                end=setting.end,
+            )
             if setting.type in [DataTypeEnum.VIDEO, DataTypeEnum.PHOTO]:
                 segments_video.append(segment)
             elif setting.type == DataTypeEnum.AUDIO:
@@ -330,6 +334,14 @@ class InstagramReelCreatorGui(QWidget):
         self.blocks_configs |= self.video_timeline.load_timeline(config_data, config_dir)
         self._load_audio_timeline(config_data)
 
+    def create_video_cover(self):
+        video_segments, _, _ = self.update_blocks_configs()
+        threading.Thread(
+            target=create_video_cover,
+            args=(video_segments, os.path.join(self.work_dir_box.text(), "cover")),
+            daemon=True,
+        ).start()
+
     def _load_audio_timeline(self, config):
         if not config.get(TimelinesTypeEnum.AUDIO_TIMELINE.value, None):
             logger.warning(f"Empty config for {TimelinesTypeEnum.AUDIO_TIMELINE.value}")
@@ -340,7 +352,12 @@ class InstagramReelCreatorGui(QWidget):
 
     def fast_preview(self):
         video_segments, audio_segments, text_segments = self.update_blocks_configs()
-        self.video_frame.fast_preview(video_segments,  audio_segments, text_segments, os.path.abspath("preview"), )
+        self.video_frame.fast_preview(
+            video_segments,
+            audio_segments,
+            text_segments,
+            os.path.abspath("preview"),
+        )
 
     def render_preview(self):
         self.update_blocks_configs()
@@ -366,7 +383,12 @@ class InstagramReelCreatorGui(QWidget):
         threading.Thread(target=self.execute_script, args=(preview,), daemon=True).start()
 
     def execute_script(self, preview):
-        create_instagram_reel(self.blocks_configs, self.work_dir_box.text(), "test_output.mp4", preview)
+        create_instagram_reel(
+            self.blocks_configs,
+            self.work_dir_box.text(),
+            os.path.join(self.work_dir_box.text(), "final_video.mp4"),
+            preview,
+        )
 
 
 if __name__ == "__main__":

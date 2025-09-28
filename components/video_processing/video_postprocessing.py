@@ -114,7 +114,7 @@ class VideoPostProcessing:
             threads=os.cpu_count() - 2,
             fps=self.OUTPUT_FPS,
         )
-
+        logging.info(f"Clip duration: {final_clip.duration}")
         # Close all clips to release resources
         final_clip.close()
         for clip in clips:
