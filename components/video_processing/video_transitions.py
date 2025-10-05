@@ -3,12 +3,10 @@ import numpy as np
 from moviepy import ImageSequenceClip, concatenate_videoclips
 from tqdm import tqdm
 
-from utils.data_structures import TransitionTypeEnum
+from utils.data_structures import FPS, TransitionTypeEnum
 
 
 class VideoTransitions:
-    FPS = 30
-
     def __init__(self):
         self.transitions = {
             TransitionTypeEnum.SLIDE: self.slide_transition,

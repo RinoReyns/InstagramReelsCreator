@@ -144,7 +144,7 @@ class VideoPlayerUI(QWidget):
     ):
         if video_segments is not None and len(video_segments) != 0:
             os.makedirs(output_folder, exist_ok=True)
-            output_file = os.path.join(output_folder, "fast_preview.mkv")
+            output_file = os.path.join(output_folder, "fast_preview.mp4")
             _, self.total_duration = FFmpegConcat().concat_segments(video_segments, output_file, audio_segments)
             self.segments = [
                 {

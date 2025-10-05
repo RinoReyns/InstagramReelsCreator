@@ -102,7 +102,7 @@ def video_to_frames(segment, output_dir="frames"):
         if not ret:
             break
 
-        out_path = os.path.join(output_dir, f"frame_{frame_idx}.jpg")
+        out_path = os.path.join(output_dir, f"frame_{frame_idx}.png")
         cv2.imwrite(out_path, frame)
 
         frame_idx += 1

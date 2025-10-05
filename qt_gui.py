@@ -48,6 +48,7 @@ from utils.json_handler import pars_config, save_json_config
 
 # TODO:
 # add button clear all timelines
+# add option to add watermark to the final video
 # optimize final render and establish some metrics for comparison
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(message)s")
@@ -321,7 +322,9 @@ class InstagramReelCreatorGui(QWidget):
         save_json_config(config, config_path)
 
     def load_config(self):
-        config_path, _ = QFileDialog.getOpenFileName(self, "Open Config File", "", "JSON Files (*.json)")
+        config_path, _ = QFileDialog.getOpenFileName(
+            self, "Open Config File", self.work_dir_box.text(), "JSON Files (*.json)"
+        )
         if not config_path:
             return
         if self.work_dir_box.text() == "":
@@ -333,6 +336,7 @@ class InstagramReelCreatorGui(QWidget):
         if len(config_data) == 0:
             self.show_warning("Empty Config. Validate its structure.")
             return
+        self.blocks_configs = {}
         self.blocks_configs |= self.text_timeline.load_timeline(config_data, config_dir)
         self.blocks_configs |= self.video_timeline.load_timeline(config_data, config_dir)
         self._load_audio_timeline(config_data)
@@ -346,6 +350,7 @@ class InstagramReelCreatorGui(QWidget):
         ).start()
 
     def _load_audio_timeline(self, config):
+        self.audioTimelineScene.clear()
         if not config.get(TimelinesTypeEnum.AUDIO_TIMELINE.value, None):
             logger.warning(f"Empty config for {TimelinesTypeEnum.AUDIO_TIMELINE.value}")
             return
