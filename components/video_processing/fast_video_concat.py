@@ -1,12 +1,13 @@
 import logging
 import os
+import shutil
 import tempfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Optional
 
 from PyQt5.QtCore import QProcess
 
-from utils.data_structures import DataTypeEnum, Segment
+from utils.data_structures import FPS, DataTypeEnum, Segment
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 # TODO:
@@ -28,14 +29,16 @@ class FFmpegConcat:
         return success
 
     def process_video_segment(self, tmp_dir, i, seg):
-        tmp_file = os.path.join(tmp_dir, f"video_part_{i}.mkv")
+        tmp_file = os.path.join(tmp_dir, f"video_part_{i}.mp4")
+        start_rounded = round(seg.start * FPS) / FPS
+        end_rounded = round(seg.end * FPS) / FPS
         args = [
             "-hide_banner",
             "-y",
             "-ss",
-            str(seg.start),
+            str(start_rounded),
             "-to",
-            str(seg.end),
+            str(end_rounded),
             "-i",
             seg.content,
             "-c",
@@ -170,7 +173,7 @@ class FFmpegConcat:
             if not self._run_ffmpeg(args):
                 return False, duration
         else:
-            os.rename(concat_video, out_path)
+            shutil.move(concat_video, out_path)
 
         # Step 5: cleanup temp files
         for tmp in (

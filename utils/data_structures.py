@@ -64,3 +64,6 @@ class Segment:
     content: str
     start: float
     end: float
+
+
+FPS = 30
