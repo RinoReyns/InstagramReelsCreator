@@ -352,6 +352,7 @@ class InstagramReelCreatorGui(QWidget):
     def _load_audio_timeline(self, config):
         self.audioTimelineScene.clear()
         if not config.get(TimelinesTypeEnum.AUDIO_TIMELINE.value, None):
+            self.draw_audio_time_grid(int(90), self.AUDIO_SELECTOR_HEIGHT + 5)
             logger.warning(f"Empty config for {TimelinesTypeEnum.AUDIO_TIMELINE.value}")
             return
 
