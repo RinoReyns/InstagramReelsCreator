@@ -19,6 +19,7 @@ class TransitionTypeEnum(StrEnum):
     SLIDE = "slide"
     FADE = "fade"
     SPIN = "spin"
+    CROSS_FADE = "cross_fade"
 
 
 class TimelinesTypeEnum(StrEnum):
