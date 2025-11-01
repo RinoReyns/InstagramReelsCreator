@@ -1,6 +1,10 @@
 import cv2
 import numpy as np
 from moviepy import ImageSequenceClip, concatenate_videoclips
+from moviepy.video.fx.CrossFadeIn import CrossFadeIn
+from moviepy.video.fx.CrossFadeOut import CrossFadeOut
+from moviepy.video.fx.FadeIn import FadeIn
+from moviepy.video.fx.FadeOut import FadeOut
 from tqdm import tqdm
 
 from utils.data_structures import FPS, TransitionTypeEnum
@@ -12,6 +16,7 @@ class VideoTransitions:
             TransitionTypeEnum.SLIDE: self.slide_transition,
             TransitionTypeEnum.ZOOM: self.zoom_transition,
             TransitionTypeEnum.FADE: self.fade_transition,
+            TransitionTypeEnum.CROSS_FADE: self.cross_fade,
             TransitionTypeEnum.NONE: self.no_transition,
             TransitionTypeEnum.SPIN: self.spin_transition,
         }
@@ -222,10 +227,16 @@ class VideoTransitions:
         return ImageSequenceClip(output_frames, fps=fps)
 
     @staticmethod
-    def fade_transition(clip1, clip2, duration=0.1):
+    def fade_transition(clip1, clip2, duration=0.05):
         # Only apply fade effects and concatenate — more efficient than composite
-        clip1_fade = clip1.fadeout(duration)
-        clip2_fade = clip2.fadein(duration)
+        clip1_fade = FadeOut(duration=duration).apply(clip1)
+        clip2_fade = FadeIn(duration=duration).apply(clip2)
+        return concatenate_videoclips([clip1_fade, clip2_fade], method="compose")
+
+    @staticmethod
+    def cross_fade(clip1, clip2, duration=0.5):
+        clip1_fade = CrossFadeOut(duration=duration).apply(clip1)
+        clip2_fade = CrossFadeIn(duration=duration).apply(clip2)
         return concatenate_videoclips([clip1_fade, clip2_fade], method="compose")
 
     @staticmethod
