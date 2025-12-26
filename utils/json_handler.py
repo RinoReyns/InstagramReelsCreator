@@ -72,9 +72,9 @@ def save_json_config(config, config_path):
     json_file = {}
     for timeline in config:
         json_file[timeline] = media_clips_to_json(config[timeline])
-
-    with open(config_path, "w") as f:
-        json.dump(json_file, f, indent=4)
+    if config_path != "":
+        with open(config_path, "w") as f:
+            json.dump(json_file, f, indent=4)
 
 
 def media_clips_to_json(data: dict[str, MediaClip], filepath: str = ""):
@@ -86,11 +86,10 @@ def media_clips_to_json(data: dict[str, MediaClip], filepath: str = ""):
         for key, clip in data.items()
     }
 
-    if filepath != "":
-        with open(filepath, "w") as f:
-            json.dump(json_file, f, indent=4)
-    else:
+    if filepath == "":
         return json_file
+    with open(filepath, "w") as f:
+        json.dump(json_file, f, indent=4)
 
 
 def load_json(filepath) -> dict:

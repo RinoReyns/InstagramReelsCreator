@@ -1,13 +1,12 @@
 import logging
 import os
 import shutil
-import tempfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Optional
 
 from PyQt5.QtCore import QProcess
 
-from utils.data_structures import FPS, DataTypeEnum, Segment
+from utils.data_structures import DataTypeEnum, Segment
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 # TODO:
@@ -30,19 +29,32 @@ class FFmpegConcat:
 
     def process_video_segment(self, tmp_dir, i, seg):
         tmp_file = os.path.join(tmp_dir, f"video_part_{i}.mp4")
-        start_rounded = round(seg.start * FPS) / FPS
-        end_rounded = round(seg.end * FPS) / FPS
         args = [
             "-hide_banner",
             "-y",
             "-ss",
-            str(start_rounded),
+            str(seg.start),
             "-to",
-            str(end_rounded),
+            str(seg.end),
             "-i",
             seg.content,
-            "-c",
-            "copy",
+            "-map",
+            "0:v:0",
+            "-an",
+            "-r",
+            "30",
+            "-vsync",
+            "cfr",
+            "-fflags",
+            "+genpts",
+            "-c:v",
+            "libx264",
+            "-preset",
+            "ultrafast",
+            "-crf",
+            "18",
+            "-pix_fmt",
+            "yuv420p",
             tmp_file,
         ]
         self.logger.info("Trimming video: " + " ".join(["ffmpeg"] + args))
@@ -51,7 +63,7 @@ class FFmpegConcat:
         return i, tmp_file, seg.end - seg.start, DataTypeEnum.VIDEO
 
     def process_audio_segment(self, tmp_dir, i, seg):
-        tmp_file = os.path.join(tmp_dir, f"audio_part_{i}.mkv")
+        tmp_file = os.path.join(tmp_dir, f"audio_part_{i}.mp4")
         args = [
             "-hide_banner",
             "-y",
@@ -83,7 +95,8 @@ class FFmpegConcat:
             self.logger.error("No video segments provided")
             return False, 0.0
 
-        tmp_dir = tempfile.mkdtemp()
+        tmp_dir = "preview/temp"
+        os.makedirs(tmp_dir, exist_ok=True)
         tmp_audio_files = [None] * len(audio_segments)
         tmp_video_files = [None] * len(video_segments)
 
@@ -91,7 +104,7 @@ class FFmpegConcat:
         duration = 0.0
 
         # Run trimming in parallel threads
-        with ThreadPoolExecutor(max_workers=os.cpu_count() - 2 or 1) as executor:
+        with ThreadPoolExecutor(max_workers=os.cpu_count() - 2) as executor:
             futures = {
                 executor.submit(self.process_video_segment, tmp_dir, i, seg): i for i, seg in enumerate(video_segments)
             }
@@ -118,7 +131,7 @@ class FFmpegConcat:
         with open(video_list_path, "w", encoding="utf-8") as f:
             for tmp in tmp_video_files:
                 f.write(f"file '{os.path.abspath(tmp)}'\n")
-        concat_video = os.path.join(tmp_dir, "concat_video.mkv")
+        concat_video = os.path.join(tmp_dir, "concat_video.mp4")
         args = ["-hide_banner", "-y", "-f", "concat", "-safe", "0", "-i", video_list_path, "-c", "copy", concat_video]
         self.logger.info(f"Concatenating video: {' '.join(['ffmpeg'] + args)}")
         if not self._run_ffmpeg(args):
@@ -132,7 +145,7 @@ class FFmpegConcat:
                 for tmp in tmp_audio_files:
                     f.write(f"file '{os.path.abspath(tmp)}'\n")
 
-            final_audio = os.path.join(tmp_dir, "concat_audio.mkv")
+            final_audio = os.path.join(tmp_dir, "concat_audio.mp4")
             args = [
                 "-hide_banner",
                 "-y",

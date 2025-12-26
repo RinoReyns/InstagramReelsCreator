@@ -44,7 +44,7 @@ def create_instagram_reel(config_file, media_dir, output_path, preview=False):
         return
     video_postprocessing = VideoPostProcessing()
     if preview:
-        video_postprocessing.preview(clips)
+        video_postprocessing.preview(clips, audio_path=audio_path, audio_start=audio_start)
     else:
         video_postprocessing.final_render(output_path, clips, audio_path=audio_path, audio_start=audio_start)
     video_preprocessing.cleanup_temp_files()
