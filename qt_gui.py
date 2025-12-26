@@ -370,8 +370,6 @@ class InstagramReelCreatorGui(QWidget):
 
     def render_preview(self):
         self.update_blocks_configs()
-        # TODO:
-        # preview in one file
         self.run_main_script(True)
 
     def final_render(self):

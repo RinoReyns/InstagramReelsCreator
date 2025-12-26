@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from components.image_processing.utils import downscale_image
+from components.image_processing.image_utils import downscale_image
 
 
 def arg_parser():
@@ -21,7 +21,10 @@ if __name__ == "__main__":
             # Example usage:
             # Downscale by 50%
             downscale_image(
-                os.path.join(args.input_folder, image), os.path.join(args.output_folder, image), scale_factor=0.5
+                os.path.join(args.input_folder, image), os.path.join(args.output_folder, image), scale_factor=0.25
             )
             # Or resize to fit within 800x600 while keeping proportions
+            # downscale_image(
+            #     os.path.join(args.input_folder, image), os.path.join(args.output_folder, image), max_size=(1080, 1350)
+            # )
             # downscale_image("input.jpg", "output_max.jpg", max_size=(800, 600))

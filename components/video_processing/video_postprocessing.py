@@ -1,8 +1,9 @@
 import logging
 import os
+import shutil
 import threading
 
-from moviepy import AudioFileClip
+from moviepy import AudioFileClip, VideoFileClip, concatenate_videoclips
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 from moviepy.video.VideoClip import ColorClip
 from tqdm import tqdm
@@ -17,6 +18,7 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(message)s")
 class VideoPostProcessing:
     OUTPUT_FPS = 30
     PREVIEW_FOLDER = "preview"
+    PREVIEW_FILE_TEMPLATE = "{index}_preview.mp4"
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
@@ -70,7 +72,7 @@ class VideoPostProcessing:
         return final_clip
 
     def render_clip(self, index, clip, codec, fps):
-        output_file = os.path.join(self.PREVIEW_FOLDER, f"preview_{index}.mp4")
+        output_file = os.path.join(self.PREVIEW_FOLDER, self.PREVIEW_FILE_TEMPLATE.format(index=f"0{index}"))
         clip.write_videofile(
             output_file,
             codec=codec,
@@ -78,14 +80,19 @@ class VideoPostProcessing:
             threads=max(1, os.cpu_count() - 2),
             fps=fps,
             logger=None,  # bar
+            preset="ultrafast",
         )
         clip.close()
 
-    def preview(self, clips: list[LoadedVideo]):
+    def preview(self, clips: list[LoadedVideo], audio_path="", audio_start=0):
+        if os.path.exists(self.PREVIEW_FOLDER):
+            shutil.rmtree(self.PREVIEW_FOLDER)
         os.makedirs(self.PREVIEW_FOLDER, exist_ok=True)
         codec = get_codec()
         threads = []
 
+        # TODO:
+        # use ProcessPool
         for index, c in enumerate(clips, 1):
             resized_clip = self.resize_and_center(c).clip
             thread = threading.Thread(
@@ -99,10 +106,40 @@ class VideoPostProcessing:
         for thread in tqdm(threads, desc="Rendering previews"):
             thread.join()
 
+        files = sorted(f for f in os.listdir(self.PREVIEW_FOLDER) if "preview" in f and f.endswith(".mp4"))
+        files.sort(key=lambda x: int(x.split("_")[0]))
+        if not files:
+            raise Exception("No preview_*.mp4 files found!")
+
+        clips = [VideoFileClip(os.path.join(self.PREVIEW_FOLDER, f)) for f in files]
+
+        # === Concatenate videos ===
+        final_video = concatenate_videoclips(clips, method="compose")
+        # === Load and attach audio ===
+        audio = AudioFileClip(audio_path).subclipped(
+            start_time=audio_start, end_time=audio_start + final_video.duration
+        )
+        final_video = final_video.with_audio(audio)
+
+        # === Export ===
+        final_video.write_videofile(
+            os.path.join(self.PREVIEW_FOLDER, "preview_fast.mp4"),
+            codec=codec,
+            audio_codec="aac",
+            fps=self.OUTPUT_FPS,
+            preset="ultrafast",
+        )
+
+        # === Cleanup ===
+        for clip in clips:
+            clip.close()
+        audio.close()
+        final_video.close()
+
     def final_render(self, output_path: str, clips: list[LoadedVideo], audio_path: str = "", audio_start=0):
         resized_clips_list = [self.resize_and_center(c) for c in clips]
         final_clip = self.apply_transitions(resized_clips_list)
-        # final_clip = concatenate_videoclips(final_clips, method="compose")
+
         if audio_path:
             audio_clip = AudioFileClip(audio_path).subclipped(audio_start, audio_start + final_clip.duration)
             final_clip = final_clip.with_audio(audio_clip)

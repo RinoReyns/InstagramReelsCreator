@@ -3,6 +3,8 @@ import os
 
 from PIL import Image
 
+from utils.data_structures import IMAGE_EXTENSIONS
+
 logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(message)s")
 logger = logging.getLogger(__name__)
 
@@ -11,6 +13,8 @@ def add_watermark(args):
     # Load base image and watermark
     os.makedirs(args.output, exist_ok=True)
     for image in os.listdir(args.input_image_folder):
+        if image.split(".")[-1] not in IMAGE_EXTENSIONS:
+            continue
         image_path = os.path.join(args.input_image_folder, image)
         logging.info(image_path)
         base = Image.open(image_path).convert("RGBA")

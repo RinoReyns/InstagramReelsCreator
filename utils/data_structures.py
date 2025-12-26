@@ -1,9 +1,9 @@
-from __future__ import annotations
-
 from dataclasses import dataclass
 from enum import StrEnum
 
 from moviepy.video.io.VideoFileClip import VideoFileClip
+
+IMAGE_EXTENSIONS = ["png", "jpg"]
 
 
 class DataTypeEnum(StrEnum):
