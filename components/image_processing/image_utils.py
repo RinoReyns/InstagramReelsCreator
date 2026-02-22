@@ -34,7 +34,7 @@ def add_watermark(args):
         base.paste(watermark, (x, y), watermark)
 
         # Save result
-        file_name, _ = os.path.basename(image_path).split('.')
+        file_name, _ = os.path.basename(image_path).split(".")
         output_path = os.path.join(args.output, f"{file_name}_watermark.png")
         base.save(output_path)
         logging.info(f"Watermarked image saved to {output_path}")
