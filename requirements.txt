@@ -2,7 +2,7 @@ moviepy==2.2.1
 numpy~=2.4.2
 opencv-python~=4.13.0.92
 opencv-python-headless==4.13.0.92
-pillow~=11.3.0
+pillow~=12.1.1
 pre-commit==4.5.1
 PyQt5==5.15.11
 python-vlc==3.0.21203
