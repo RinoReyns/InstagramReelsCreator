@@ -17,14 +17,14 @@ if __name__ == "__main__":
     os.makedirs(args.output_folder, exist_ok=True)
 
     for image in os.listdir(args.input_folder):
-        if ".png" in image:
+        if ".png" in image or ".jpg" in image:
             # Example usage:
             # Downscale by 50%
-            downscale_image(
-                os.path.join(args.input_folder, image), os.path.join(args.output_folder, image), scale_factor=0.25
-            )
-            # Or resize to fit within 800x600 while keeping proportions
             # downscale_image(
-            #     os.path.join(args.input_folder, image), os.path.join(args.output_folder, image), max_size=(1080, 1350)
+            #     os.path.join(args.input_folder, image), os.path.join(args.output_folder, image), scale_factor=0.25
             # )
+            # Or resize to fit within 800x600 while keeping proportions
+            downscale_image(
+                os.path.join(args.input_folder, image), os.path.join(args.output_folder, image), scale_factor=0.5
+            )
             # downscale_image("input.jpg", "output_max.jpg", max_size=(800, 600))

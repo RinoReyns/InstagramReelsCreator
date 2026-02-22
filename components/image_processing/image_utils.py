@@ -1,7 +1,7 @@
 import logging
 import os
 
-from PIL import Image
+from PIL import Image, ImageOps
 
 from utils.data_structures import IMAGE_EXTENSIONS
 
@@ -17,7 +17,8 @@ def add_watermark(args):
             continue
         image_path = os.path.join(args.input_image_folder, image)
         logging.info(image_path)
-        base = Image.open(image_path).convert("RGBA")
+        base = Image.open(image_path)
+        base = ImageOps.exif_transpose(base).convert("RGBA")
         watermark = Image.open(args.watermark_image).convert("RGBA")
         if args.rescale:
             watermark = rescale_image(watermark)
@@ -33,13 +34,14 @@ def add_watermark(args):
         base.paste(watermark, (x, y), watermark)
 
         # Save result
-        output_path = os.path.join(args.output, f"{os.path.basename(image_path).split('.')[0]}_watermark.png")
+        file_name, _ = os.path.basename(image_path).split(".")
+        output_path = os.path.join(args.output, f"{file_name}_watermark.png")
         base.save(output_path)
         logging.info(f"Watermarked image saved to {output_path}")
 
 
 def rescale_image(watermark):
-    max_width = 200
+    max_width = 300
     max_height = 100
     scale = min(max_width / watermark.width, max_height / watermark.height)
     # Compute new size
