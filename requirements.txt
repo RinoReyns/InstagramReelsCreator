@@ -8,5 +8,5 @@ PyQt5==5.15.11
 python-vlc==3.0.21203
 soundfile==0.13.1
 sympy==1.14.0
-tqdm~=4.67.3
+tqdm~=4.68.0
 yt_dlp==2026.3.17
