@@ -3,10 +3,10 @@ numpy~=2.4.6
 opencv-python~=4.13.0.92
 opencv-python-headless==4.13.0.92
 pillow~=11.3.0
-pre-commit==4.5.1
+pre-commit==4.6.0
 PyQt5==5.15.11
 python-vlc==3.0.21203
 soundfile==0.13.1
 sympy==1.14.0
 tqdm~=4.67.3
-yt_dlp==2026.3.17
+yt_dlp==2026.6.9
