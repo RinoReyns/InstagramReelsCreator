@@ -6,7 +6,7 @@ pillow~=11.3.0
 pre-commit==4.6.0
 PyQt5==5.15.11
 python-vlc==3.0.21203
-soundfile==0.13.1
+soundfile==0.14.0
 sympy==1.14.0
 tqdm~=4.68.0
 yt_dlp==2026.6.9
